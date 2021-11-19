@@ -19,7 +19,7 @@ from Bubot.Core.DataBase.Mongo import Mongo as Storage
 from Bubot.Core.FastStorage.PythonFastStorage import PythonFastStorage as FastStorage
 from Bubot.Helpers.Helper import Helper
 from Bubot.Helpers.ExtException import ExtException, ResourceNotAvailable
-from Bubot.Core.Ocf import find_drivers
+from Bubot.Ocf.Helper import find_drivers
 import os.path
 
 
@@ -142,7 +142,7 @@ class WebServer(VirtualServer, QueueMixin):
             try:
                 ui_view = self.get_device_class(elem)()
                 if hasattr(ui_view, 'add_route'):
-                    ui_view.add_route(app)
+                    ui_view.add_route(app)  # todo сделать разводящую из всех доступных
                     i += 1
             except Exception as e:
                 self.log.error('Error import_ui_handlers({1}): {0}'.format(e, elem))
