@@ -1,6 +1,7 @@
 import time
 from Bubot.Helpers.ExtException import ExtException, Unauthorized, AccessDenied
-from Bubot.Helpers.Action import Action, async_action
+from Bubot.Helpers.Action import Action
+from Bubot.Helpers.ActionDecorator import async_action
 from aiohttp_session import get_session
 # from bubot.Helpers.Сryptography.SignedData import SignedData
 from aiohttp import web
@@ -28,14 +29,14 @@ class ApiHandler:
         try:
             api_class = self.get_api_class(device, obj_name)(response_class)
         except Exception as err:
-            raise ExtException('Handler not found', detail=f'{device}/{obj_name}', parent=err)
+            raise ExtException(message='Handler not found', detail=f'{device}/{obj_name}', parent=err)
         api_action = f'{prefix}_{action}'
         self.session = await get_session(request)
         self.session['last_visit'] = time.time()
         try:
             task = getattr(api_class, api_action)
         except Exception as err:
-            raise ExtException('Handler not found', detail=f'{device}/{obj_name}/{action}')
+            raise ExtException(message='Handler not found', detail=f'{device}/{obj_name}/{action}')
         return task(self)
 
     # async def get_json_data(self):

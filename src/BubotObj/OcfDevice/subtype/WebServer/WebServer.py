@@ -18,6 +18,7 @@ from Bubot.Core.DataBase.Mongo import Mongo as Storage
 # from bubot.Core.DataBase.SqlLite import SqlLite as Storage
 from Bubot.Core.FastStorage.PythonFastStorage import PythonFastStorage as FastStorage
 from Bubot.Helpers.Helper import Helper
+from Bubot.Helpers.ActionDecorator import async_action
 from Bubot.Helpers.ExtException import ExtException, ResourceNotAvailable
 from Bubot.Ocf.Helper import find_drivers
 import os.path
@@ -49,7 +50,8 @@ class WebServer(VirtualServer, QueueMixin):
         await self.run_web_server()
         await super().on_pending()
 
-    async def run_web_server(self):
+    @async_action
+    async def run_web_server(self, *, _action):
 
         # self = cls.init_from_file(**kwargs)
         # self.save_config()

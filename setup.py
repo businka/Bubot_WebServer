@@ -30,7 +30,7 @@ setuptools.setup(
     install_requires=[
         'motor>=2.3',
         'aiohttp>=3.7,<4',
-        'aiohttp_session>=2.9',
-        'Bubot_Core',
+        'aiohttp-session>=2.9',
+        'Bubot_Core>=0.0.12',
     ]
 )

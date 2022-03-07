@@ -1,5 +1,5 @@
 from Bubot.Core.Obj import Obj
-from Bubot.Helpers.Action import async_action
+from Bubot.Helpers.ActionDecorator import async_action
 from Bubot.Helpers.ExtException import ExtException, AccessDenied, KeyNotFound
 from Bubot.Helpers.Helper import ArrayHelper
 
@@ -44,7 +44,7 @@ class User(Obj):
             limit=1
         ))
         if res:
-            raise ExtException('Такой пользователь уже зарегистрирован')
+            raise ExtException(message='Такой пользователь уже зарегистрирован')
 
         self.data = {
             'title': data['id'],

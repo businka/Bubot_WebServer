@@ -1,7 +1,8 @@
-from aiohttp_session import AbstractStorage, Session , memcached_storage
-from bson import json_util as json
 import uuid
 from time import time
+
+from aiohttp_session import AbstractStorage, Session
+from bson import json_util as json
 
 
 class AppSessionStorage(AbstractStorage):
@@ -62,7 +63,7 @@ class AppSessionStorage(AbstractStorage):
         max_age = session.max_age
         if max_age is None:
             expire = 0
-        elif max_age > 30*24*60*60:
+        elif max_age > 30 * 24 * 60 * 60:
             expire = int(time()) + max_age
         else:
             expire = max_age
