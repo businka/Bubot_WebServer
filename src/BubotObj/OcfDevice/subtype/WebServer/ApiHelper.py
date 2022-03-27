@@ -18,6 +18,10 @@ class WebResponse:
         text = dumps(data, ensure_ascii=False)
         return web.Response(text=text, status=status, headers=headers, content_type=content_type)
 
+    @staticmethod
+    def text_response(text='', *, status: int = 200, headers=None) -> web.Response:
+        return web.Response(text=text, status=status, headers=headers)
+
 
 class WsResponse:
     @staticmethod

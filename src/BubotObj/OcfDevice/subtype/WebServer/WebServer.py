@@ -1,5 +1,6 @@
-# from bubot.OcfDriver.OcfDevice.OcfDevice import OcfDevice
+# from bubot.Client.OcfDevice.OcfDevice import OcfDevice
 from BubotObj.OcfDevice.subtype.VirtualServer.VirtualServer import VirtualServer
+from BubotObj.OcfDevice.subtype.Device import Device
 import json
 from bson import ObjectId
 from BubotObj.OcfDevice.subtype.Device.QueueMixin import QueueMixin
@@ -11,12 +12,13 @@ import asyncio
 # import logging
 from BubotObj.OcfDevice.subtype.WebServer.HttpHandler import HttpHandler
 from BubotObj.OcfDevice.subtype.WebServer.FormHandler import FormHandler
+from BubotObj.OcfDevice.subtype.WebServer.SchemaHandler import SchemaHandler
 from BubotObj.OcfDevice.subtype.WebServer.WsHandler import WsHandler
 
-# from bubot.Catalog.OcfDriver.WebServer import API
+# from bubot.Catalog.Client.WebServer import API
 from Bubot.Core.DataBase.Mongo import Mongo as Storage
 # from bubot.Core.DataBase.SqlLite import SqlLite as Storage
-from Bubot.Core.FastStorage.PythonFastStorage import PythonFastStorage as FastStorage
+from Bubot.Core.FastStorage.Simle import PythonFastStorage as FastStorage
 from Bubot.Helpers.Helper import Helper
 from Bubot.Helpers.ActionDecorator import async_action
 from Bubot.Helpers.ExtException import ExtException, ResourceNotAvailable
@@ -138,17 +140,17 @@ class WebServer(VirtualServer, QueueMixin):
         self.log.info('complete')
 
     def add_routes(self, app):
-        i = 0
         self.log.info('add routes')
         for elem in self.get_param('/oic/mnt', 'drivers'):
             try:
-                ui_view = self.get_device_class(elem)()
-                if hasattr(ui_view, 'add_route'):
-                    ui_view.add_route(app)  # todo сделать разводящую из всех доступных
-                    i += 1
+                ui_view: Device = self.get_device_class(elem)()
+                ui_view.add_route(app)  # todo сделать разводящую из всех доступных
+            except NotImplementedError:
+                pass
             except Exception as e:
                 self.log.error('Error import_ui_handlers({1}): {0}'.format(e, elem))
-
+        # for elem in app.router.routes():
+        #     print(elem)
         pass
 
     def add_route(self, app):
@@ -156,8 +158,8 @@ class WebServer(VirtualServer, QueueMixin):
         app.router.add_route('*', '/api/{device}/{action}', HttpHandler)
         app.router.add_route('*', '/api/{device}/{obj_name}/{action}', HttpHandler)
         app.router.add_route('get', '/form/{device}/{obj_name}/{form_name}', FormHandler)
+        # app.router.add_route('*', '/schema/{action}', SchemaHandler)
         app.router.add_static('/i18n', f'{self.path}/i18n')
-
         pass
 
     @staticmethod
@@ -174,7 +176,7 @@ class WebServer(VirtualServer, QueueMixin):
                         # if issubclass(handler, Ui) and handler.need_auth(request):
                         #     raise web.HTTPFound(
                         #         "{0}?redirect={1}".format(app['bubot'].get_param('login_url'), request.path))
-                        # auth = request.app['ui'][re.findall('^/ui/(.*)/', request.path)[0]]['param']['auth']
+                        # auth = request.app['src_vue'][re.findall('^/src_vue/(.*)/', request.path)[0]]['param']['auth']
                     finally:
                         pass
                         # if auth:

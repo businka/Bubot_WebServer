@@ -81,7 +81,7 @@ class WsHandler(HttpHandler):
             return self.ws
 
     async def post(self):
-        raise NotImplemented()
+        raise NotImplementedError()
 
     async def call_handler(self, msg):
         try:

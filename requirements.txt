@@ -1,5 +1,5 @@
 twine
-motor>=2.3
+motor>=2.5.1
 aiohttp>=3.7,<4
 aiohttp-session>=2.9
 Bubot_Core>=0.0.12

@@ -1,7 +1,5 @@
 from aiohttp import web
 import json
-import os.path
-import asyncio
 import re
 import os.path
 from sys import path as syspath
@@ -35,20 +33,6 @@ class FormHandler(web.View):
                 return web.json_response(data)
             except Exception as e:
                 return web.Response(status=500, text=str(e))
-        # file_name = './jay/{obj_type}/{obj_name}/form/{form_name}.params.schema.json'.format(
-        #     dir=os.path.dirname(__file__),
-        #     obj_type=self.obj_type,
-        #     obj_name=self.obj_name,
-        #     form_name=self.form_name)
-        # if os.path.exists(file_name):
-        #     with open(file_name, 'r', encoding='utf-8') as file:
-        #         data['params'] = json.load(file)
-        # file_name = f'./bubot/{obj_name}/forms/{form_name}.schema.json'
-        #
-        # if os.path.exists(file_name):
-        #     with open(file_name, 'r', encoding='utf-8') as file:
-        #         data['schema'] = json.load(file)
-        # return web.json_response(data)
 
     @classmethod
     def find_forms(cls, **kwargs):
