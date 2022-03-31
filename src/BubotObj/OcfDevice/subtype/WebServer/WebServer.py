@@ -1,29 +1,29 @@
 # from bubot.Client.OcfDevice.OcfDevice import OcfDevice
-from BubotObj.OcfDevice.subtype.VirtualServer.VirtualServer import VirtualServer
-from BubotObj.OcfDevice.subtype.Device import Device
+import asyncio
 import json
-from bson import ObjectId
-from BubotObj.OcfDevice.subtype.Device.QueueMixin import QueueMixin
-from .__init__ import __version__ as device_version
+import os.path
+
 from aiohttp import web
 from aiohttp_session import get_session, setup
-from BubotObj.OcfDevice.subtype.WebServer.AppSessionStorage import AppSessionStorage
-import asyncio
-# import logging
-from BubotObj.OcfDevice.subtype.WebServer.HttpHandler import HttpHandler
-from BubotObj.OcfDevice.subtype.WebServer.FormHandler import FormHandler
-from BubotObj.OcfDevice.subtype.WebServer.SchemaHandler import SchemaHandler
-from BubotObj.OcfDevice.subtype.WebServer.WsHandler import WsHandler
+from bson import ObjectId
 
 # from bubot.Catalog.Client.WebServer import API
 from Bubot.Core.DataBase.Mongo import Mongo as Storage
 # from bubot.Core.DataBase.SqlLite import SqlLite as Storage
-from Bubot.Core.FastStorage.Simle import PythonFastStorage as FastStorage
-from Bubot.Helpers.Helper import Helper
+from Bubot.Core.FastStorage.Simple import SimpleFastStorage as FastStorage
 from Bubot.Helpers.ActionDecorator import async_action
-from Bubot.Helpers.ExtException import ExtException, ResourceNotAvailable
+from Bubot.Helpers.ExtException import ResourceNotAvailable
+from Bubot.Helpers.Helper import Helper
 from Bubot.Ocf.Helper import find_drivers
-import os.path
+from BubotObj.OcfDevice.subtype.Device import Device
+from BubotObj.OcfDevice.subtype.Device.QueueMixin import QueueMixin
+from BubotObj.OcfDevice.subtype.VirtualServer.VirtualServer import VirtualServer
+from BubotObj.OcfDevice.subtype.WebServer.AppSessionStorage import AppSessionStorage
+from BubotObj.OcfDevice.subtype.WebServer.FormHandler import FormHandler
+# import logging
+from BubotObj.OcfDevice.subtype.WebServer.HttpHandler import HttpHandler
+from BubotObj.OcfDevice.subtype.WebServer.WsHandler import WsHandler
+from .__init__ import __version__ as device_version
 
 
 # _logger = logging.getLogger(__name__)
@@ -199,6 +199,7 @@ class WebServer(VirtualServer, QueueMixin):
         # """
 
         try:
+
             filename = request.match_info['filename']
             if not filename or filename.endswith('/'):
                 filename = index
