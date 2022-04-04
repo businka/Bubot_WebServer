@@ -31,6 +31,6 @@ setuptools.setup(
         'motor>=2.3',
         'aiohttp>=3.7,<4',
         'aiohttp-session>=2.9',
-        'Bubot_Core>=0.0.12',
+        'Bubot_Core>=0.0.14',
     ]
 )
