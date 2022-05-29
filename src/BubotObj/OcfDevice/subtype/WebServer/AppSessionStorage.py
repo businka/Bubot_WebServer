@@ -1,4 +1,4 @@
-import uuid
+from uuid import uuid4
 from time import time
 
 from aiohttp_session import AbstractStorage, Session
@@ -8,7 +8,7 @@ from bson import json_util as json
 class AppSessionStorage(AbstractStorage):
     def __init__(self, app, *, cookie_name="AIOHTTP_SESSION",
                  domain=None, max_age=None, path='/',
-                 key_factory=lambda: uuid.uuid4().hex,
+                 key_factory=lambda: str(uuid4()),
                  secure=None, httponly=True,
                  encoder=json.dumps, decoder=json.loads):
         super().__init__(cookie_name=cookie_name, domain=domain,

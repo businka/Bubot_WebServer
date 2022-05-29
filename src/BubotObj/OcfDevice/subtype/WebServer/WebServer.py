@@ -2,10 +2,12 @@
 import asyncio
 import json
 import os.path
+from uuid import uuid4
+import inspect
 
 from aiohttp import web
-from aiohttp_session import get_session, setup
-from bson import ObjectId
+from aiohttp_session import get_session, setup, session_middleware
+# from bson import ObjectId
 
 # from bubot.Catalog.Client.WebServer import API
 from Bubot.Core.DataBase.Mongo import Mongo as Storage
@@ -15,15 +17,16 @@ from Bubot.Helpers.ActionDecorator import async_action
 from Bubot.Helpers.ExtException import ResourceNotAvailable
 from Bubot.Helpers.Helper import Helper
 from Bubot.Ocf.Helper import find_drivers
-from BubotObj.OcfDevice.subtype.Device import Device
+from BubotObj.OcfDevice.subtype.Device.Device import Device
 from BubotObj.OcfDevice.subtype.Device.QueueMixin import QueueMixin
 from BubotObj.OcfDevice.subtype.VirtualServer.VirtualServer import VirtualServer
 from BubotObj.OcfDevice.subtype.WebServer.AppSessionStorage import AppSessionStorage
 from BubotObj.OcfDevice.subtype.WebServer.FormHandler import FormHandler
 # import logging
-from BubotObj.OcfDevice.subtype.WebServer.HttpHandler import HttpHandler
+from BubotObj.OcfDevice.subtype.WebServer.HttpHandler import HttpHandler, PublicHttpHandler
 from BubotObj.OcfDevice.subtype.WebServer.WsHandler import WsHandler
 from .__init__ import __version__ as device_version
+import re
 
 
 # _logger = logging.getLogger(__name__)
@@ -59,16 +62,18 @@ class WebServer(VirtualServer, QueueMixin):
         # self.save_config()
         # self.log.info(f'{self.__class__.__name__} start up')
         app = web.Application(
-            middlewares=[
-                # session_middleware(SimpleCookieStorage()),
-                # self.middleware_auth(),
-                self.middleware_index
-            ])
+            # middlewares=[
+            #     self.middleware_auth,
+            #     self.middleware_index
+            # ]
+        )
         app['device'] = self
         app['sessions'] = {}
         app['fast_storage'] = FastStorage()
         app['storage'] = Storage.connect(self)
+        app.middlewares.append(self.middleware_index)
         setup(app, self.get_session_storage(app, 'AppSessionStorage'))
+        app.middlewares.append(self.middleware_auth)
         drivers = find_drivers(log=self.log)
         self.set_param('/oic/mnt', 'drivers', drivers)
         self.build_i18n(drivers)
@@ -157,36 +162,40 @@ class WebServer(VirtualServer, QueueMixin):
         app.router.add_route('get', '/ws', WsHandler)
         app.router.add_route('*', '/api/{device}/{action}', HttpHandler)
         app.router.add_route('*', '/api/{device}/{obj_name}/{action}', HttpHandler)
+        app.router.add_route('*', '/api/{device}/{obj_name}/{subtype}/{action}', HttpHandler)
+        app.router.add_route('*', '/public_api/{device}/{action}', PublicHttpHandler)
+        app.router.add_route('*', '/public_api/{device}/{obj_name}/{action}', PublicHttpHandler)
         app.router.add_route('get', '/form/{device}/{obj_name}/{form_name}', FormHandler)
+        app.router.add_route('get', '/form/{device}/{obj_name}/{subtype}/{form_name}', FormHandler)
         # app.router.add_route('*', '/schema/{action}', SchemaHandler)
         app.router.add_static('/i18n', f'{self.path}/i18n')
         pass
 
     @staticmethod
-    def middleware_auth():
-        async def middleware_factory(app, handler):
-            async def auth_handler(request):
-                session = await get_session(request)
-                if session.get("user"):
-                    return await handler(request)
-                else:
-                    # auth = 0
-                    try:
-                        pass
-                        # if issubclass(handler, Ui) and handler.need_auth(request):
-                        #     raise web.HTTPFound(
-                        #         "{0}?redirect={1}".format(app['bubot'].get_param('login_url'), request.path))
-                        # auth = request.app['src_vue'][re.findall('^/src_vue/(.*)/', request.path)[0]]['param']['auth']
-                    finally:
-                        pass
-                        # if auth:
-                        # url = request.app.router['login'].url()
+    @web.middleware
+    async def middleware_auth(request, handler):
+        try:
+            session = await get_session(request)
+        except Exception as err:
+            raise err
+        if session.get("user"):
+            return await handler(request)
+        else:
+            # auth = 0
+            # try:
+            if handler in [HttpHandler, WsHandler]:
+                raise web.HTTPUnauthorized()
+                # url = request.app['device'].get_param('/oic/con', 'login_url', '/ui/AuthService')
+                # redirect_url = request.path
+                # raise web.HTTPFound(f"{url}?redirect={redirect_url}")
+                # auth = request.app['src_vue'][re.findall('^/src_vue/(.*)/', request.path)[0]]['param']['auth']
+            # finally:
+            #     pass
+                # if auth:
+                #     url = request.app.router['login'].url()
 
-                return await handler(request)
+        return await handler(request)
 
-            return auth_handler
-
-        return middleware_factory
 
     @staticmethod
     @web.middleware
@@ -237,7 +246,7 @@ class WebServer(VirtualServer, QueueMixin):
             return AppSessionStorage(
                 app,
                 httponly=False,
-                key_factory=lambda: str(ObjectId()),
+                key_factory=lambda: str(uuid4()),
                 cookie_name="session",
                 # encoder=cookie_encoder, decoder=cookie_decoder
             )

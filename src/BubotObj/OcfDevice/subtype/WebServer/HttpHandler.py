@@ -1,16 +1,18 @@
+import re
 import time
-from Bubot.Helpers.ExtException import ExtException, Unauthorized, AccessDenied, HandlerNotFoundError
-from Bubot.Helpers.Action import Action
-from Bubot.Helpers.ActionDecorator import async_action
-from aiohttp_session import get_session
+
 # from bubot.Helpers.Сryptography.SignedData import SignedData
 from aiohttp import web
+from aiohttp_session import get_session
+from bson.json_util import dumps, loads
+
 from Bubot.Core.BubotHelper import BubotHelper
+from Bubot.Helpers.Action import Action
+from Bubot.Helpers.ActionDecorator import async_action
+from Bubot.Helpers.ExtException import ExtException, Unauthorized, AccessDenied
 from BubotObj.OcfDevice.subtype.WebServer.ApiHelper import WebResponse as Response
 # from bubot.Catalog.Account.Account import Account
 from BubotObj.User.User import User
-import re
-from bson.json_util import dumps, loads
 
 
 class ApiHandler:
@@ -53,11 +55,12 @@ class ApiHandler:
     #         raise Exception('empty data')
     #     return loads(data)
 
-    def get_api_class(self, device, obj_name):
+    def get_api_class(self, device, obj_name, subtype=None):
+        uid = device
         if obj_name:
-            uid = f'{device}.{obj_name}'
-        else:
-            uid = device
+            uid += f'.{obj_name}'
+        if subtype:
+            uid += f'.{device}'
         try:
             return self.api_class_cache[uid]
         except KeyError:
@@ -66,7 +69,13 @@ class ApiHandler:
             try:
                 api_class = BubotHelper.get_extension_class(obj_name, device, suffix='Api')
             except:
-                api_class = BubotHelper.get_obj_class(obj_name, suffix='Api')
+                if subtype:
+                    try:
+                        api_class = BubotHelper.get_subtype_class(obj_name, subtype, suffix='Api')
+                    except:
+                        api_class = BubotHelper.get_obj_class(obj_name, suffix='Api')
+                else:
+                    api_class = BubotHelper.get_obj_class(obj_name, suffix='Api')
         else:
             api_class = BubotHelper.get_subtype_class('OcfDevice', device, suffix='Api')
         self.api_class_cache[uid] = api_class
@@ -97,6 +106,7 @@ class ApiHandler:
 
 
 class HttpHandler(web.View, ApiHandler):
+    prefix_api = 'api'
 
     def __init__(self, request):
         web.View.__init__(self, request)
@@ -109,7 +119,7 @@ class HttpHandler(web.View, ApiHandler):
         pass
 
     async def get(self):
-        return await self.request_handler('api')
+        return await self.request_handler(self.prefix_api)
 
     async def post(self):
         async def www_form_decode():
@@ -127,7 +137,7 @@ class HttpHandler(web.View, ApiHandler):
         if data_type and data_type in data_decoder:
             self.data = await data_decoder[data_type]()
 
-        return await self.request_handler('api')
+        return await self.request_handler(self.prefix_api)
 
     async def request_handler(self, prefix, **kwargs):
         _action = Action(name=f'{self.__class__.__name__}.request_handler')
@@ -155,3 +165,7 @@ class HttpHandler(web.View, ApiHandler):
 
     async def notify(self, data):
         return
+
+
+class PublicHttpHandler(HttpHandler):
+    prefix_api = 'public_api'
