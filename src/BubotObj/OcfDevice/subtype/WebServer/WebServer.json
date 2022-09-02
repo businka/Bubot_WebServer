@@ -3,6 +3,9 @@
     "n": "Web server"
   },
   "/oic/con": {
-    "port": 80
+    "port": 80,
+    "rt": [
+      "bubot.storage"
+    ]
   }
 }

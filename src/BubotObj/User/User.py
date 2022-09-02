@@ -1,12 +1,16 @@
 from Bubot.Core.Obj import Obj
 from Bubot.Helpers.ActionDecorator import async_action
-from Bubot.Helpers.ExtException import ExtException, AccessDenied, KeyNotFound
+from Bubot.Helpers.ExtException import ExtException, AccessDenied, KeyNotFound, Unauthorized
 from Bubot.Helpers.Helper import ArrayHelper
 
 
 class User(Obj):
     name = 'User'
     file = __file__
+
+    @property
+    def db(self):
+        return 'Bubot'
 
     @classmethod
     async def find_by_cert(cls, storage, cert, create=False):
@@ -23,55 +27,50 @@ class User(Obj):
                 raise KeyError
         return self
 
-    @property
-    def db(self):
-        return 'AuthService'
-
     @async_action
-    async def add_auth(self, data, **kwargs):
-        action = kwargs['_action']
+    async def add_auth(self, data, *, _action=None, **kwargs):
         session = kwargs.get('session', {})
         user_id = session.get('user')
+        try:
+            _action.add_stat(await self.find_user_by_auth(data['type'], data['id']))
+            raise ExtException(message='Такой пользователь уже зарегистрирован')
+        except Unauthorized:
+            pass
         if user_id:
             try:
-                action.add_stat(await self.find_by_id(user_id, projection={'_id': 1, 'auth': 1}))
-                res = action.add_stat(await self.push('auth', data))
+                _action.add_stat(await self.find_by_id(user_id, projection={'_id': 1, 'auth': 1}))
+                _action.add_stat(await self.push('auth', data))
             except KeyError:
                 session['user'] = None
-        res = action.add_stat(await self.query(
-            filter={'auth.type': data['type'], 'auth.id': data['id']},
-            projection={'_id': 1, 'auth': 1},
-            limit=1
-        ))
-        if res:
-            raise ExtException(message='Такой пользователь уже зарегистрирован')
-
-        self.data = {
-            'title': data['id'],
-            'auth': [data]
-        }
-        res = action.add_stat(await self.update())
-        return {}
-        pass
+        else:
+            self.data = {
+                'title': data['id'],
+                'auth': [data]
+            }
+            res = _action.add_stat(await self.update())
+            return res
 
     @async_action
-    async def find_user_by_auth(self, _type, _id, **kwargs):
-        action = kwargs["_action"]
-        res = action.add_stat(await self.query(
-            filter={
+    async def find_user_by_auth(self, _type, _id, *, _action=None, **kwargs):
+        # self.add_projection(kwargs)
+        # kwargs['projection']['auth'] = True
+        res = _action.add_stat(await self.query(
+            where={
                 'auth.type': _type,
                 'auth.id': _id,
             },
+            _form=None,
             limit=1
         ))
-        bad_password = Unauthorized()
         if not res:
-            raise bad_password
-        i = ArrayHelper.find(res[0]['auth'], _type, 'type')
+            raise Unauthorized()
+        i = ArrayHelper.find_by_key(res[0]['auth'], _type, 'type')
         if i < 0:
-            raise bad_password
-        self.init_by_data(res[0])
-        return res[0]['auth'][i]
+            raise Unauthorized()
+        user_data = res[0]
+        auth = user_data.pop('auth')
+        self.init_by_data(user_data)
+        return auth[i]
 
     def get_default_account(self):
         accounts = self.data.get('account', [])
