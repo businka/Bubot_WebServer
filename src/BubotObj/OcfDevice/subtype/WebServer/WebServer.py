@@ -123,7 +123,10 @@ class WebServer(VirtualServer, QueueMixin):
                 with open(locale_path, "r", encoding='utf-8') as file:
                     try:
                         _data = json.load(file)
-                        Helper.update_dict(locales[locale], _data)
+                        if isinstance(_data, dict):
+                            Helper.update_dict(locales[locale], _data)
+                        else:
+                            self.log.error(f'Build locale {locale} for driver {elem}: Bad format {_data}')
                     except Exception as err:
                         self.log.error(f'Build locale {locale} for driver {elem}: {str(err)}')
 
