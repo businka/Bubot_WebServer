@@ -48,12 +48,18 @@ class WebServer(VirtualServer, QueueMixin):
         self.serial_queue_worker = None
         self.ws = {}
         self.runner = None
+        self.storage = None
         VirtualServer.__init__(self, **kwargs)
 
     async def on_pending(self):
         # self.serial_queue_worker = asyncio.ensure_future(self.queue_worker(self.request_queue, 'request_queue'))
         await self.run_web_server()
         await super().on_pending()
+
+    async def on_stopped(self):
+        await self.runner.app['storage'].close()
+        await self.runner.cleanup()
+        await super().on_stopped()
 
     @async_action
     async def run_web_server(self, *, _action):
@@ -70,7 +76,8 @@ class WebServer(VirtualServer, QueueMixin):
         app['device'] = self
         app['sessions'] = {}
         app['fast_storage'] = FastStorage()
-        app['storage'] = Storage.connect(self)
+        self.storage =  await Storage.connect(self)
+        app['storage'] = self.storage
         app.middlewares.append(self.middleware_index)
         setup(app, self.get_session_storage(app, 'AppSessionStorage'))
         app.middlewares.append(self.middleware_auth)
