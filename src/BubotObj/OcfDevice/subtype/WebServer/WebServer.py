@@ -87,7 +87,7 @@ class WebServer(VirtualServer, QueueMixin):
         self.set_param('/oic/mnt', 'drivers', drivers)
         self.build_i18n(drivers)
         self.add_routes(app)
-        port = self.get_param('/oic/con', 'port', 80)
+        port = self.get_param('/oic/con', 'port', 8080)
         # app.on_startup.append(self.start_background_tasks)
         # app.on_cleanup.append(self.cleanup_background_tasks)
         self.runner = web.AppRunner(app)
@@ -155,7 +155,7 @@ class WebServer(VirtualServer, QueueMixin):
                 except Exception as err:
                     self.log.error(f'Build locale {locale}: {str(err)}')
 
-        self.log.info('complete')
+        self.log.info('build i18n complete')
 
     def add_routes(self, app):
         self.log.info('add routes')
@@ -166,7 +166,8 @@ class WebServer(VirtualServer, QueueMixin):
             except NotImplementedError:
                 pass
             except Exception as e:
-                self.log.error('Error import_ui_handlers({1}): {0}'.format(e, elem))
+                err = ExtException(parent=e)
+                self.log.error(f'Error import_ui_handlers({elem}): {err}')
         # for elem in app.router.routes():
         #     print(elem)
         pass
