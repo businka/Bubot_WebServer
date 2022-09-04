@@ -14,7 +14,7 @@ from Bubot.Core.DataBase.Mongo import Mongo as Storage
 # from bubot.Core.DataBase.SqlLite import SqlLite as Storage
 from Bubot.Core.FastStorage.Simple import SimpleFastStorage as FastStorage
 from Bubot.Helpers.ActionDecorator import async_action
-from Bubot.Helpers.ExtException import ResourceNotAvailable
+from Bubot.Helpers.ExtException import ExtException, ResourceNotAvailable
 from Bubot.Helpers.Helper import Helper
 from Bubot.Ocf.Helper import find_drivers
 from BubotObj.OcfDevice.subtype.Device.Device import Device
@@ -56,10 +56,12 @@ class WebServer(VirtualServer, QueueMixin):
         await self.run_web_server()
         await super().on_pending()
 
-    async def on_stopped(self):
-        await self.runner.app['storage'].close()
-        await self.runner.cleanup()
-        await super().on_stopped()
+    async def on_cancelled(self):
+        if self.storage:
+            await self.storage.close()
+        if self.runner is not None:
+            await self.runner.cleanup()
+        await super().on_cancelled()
 
     @async_action
     async def run_web_server(self, *, _action):
@@ -76,7 +78,7 @@ class WebServer(VirtualServer, QueueMixin):
         app['device'] = self
         app['sessions'] = {}
         app['fast_storage'] = FastStorage()
-        self.storage =  await Storage.connect(self)
+        self.storage = await Storage.connect(self)
         app['storage'] = self.storage
         app.middlewares.append(self.middleware_index)
         setup(app, self.get_session_storage(app, 'AppSessionStorage'))
@@ -135,6 +137,7 @@ class WebServer(VirtualServer, QueueMixin):
                         else:
                             self.log.error(f'Build locale {locale} for driver {elem}: Bad format {_data}')
                     except Exception as err:
+                        err = ExtException(parent=err)
                         self.log.error(f'Build locale {locale} for driver {elem}: {str(err)}')
 
         i18n_dir = os.path.normpath(f'{self.path}/i18n')
@@ -158,7 +161,7 @@ class WebServer(VirtualServer, QueueMixin):
         self.log.info('add routes')
         for elem in self.get_param('/oic/mnt', 'drivers'):
             try:
-                ui_view: Device = self.get_device_class(elem)()
+                ui_view: Device = self.get_device_class(elem)(path=self.path)
                 ui_view.add_route(app)  # todo сделать разводящую из всех доступных
             except NotImplementedError:
                 pass
@@ -201,11 +204,10 @@ class WebServer(VirtualServer, QueueMixin):
                 # auth = request.app['src_vue'][re.findall('^/src_vue/(.*)/', request.path)[0]]['param']['auth']
             # finally:
             #     pass
-                # if auth:
-                #     url = request.app.router['login'].url()
+            # if auth:
+            #     url = request.app.router['login'].url()
 
         return await handler(request)
-
 
     @staticmethod
     @web.middleware
