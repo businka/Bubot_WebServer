@@ -173,16 +173,15 @@ class WebServer(VirtualServer, QueueMixin):
         pass
 
     def add_route(self, app):
-        app.router.add_route('get', '/ws', WsHandler)
-        app.router.add_route('*', '/api/{device}/{action}', HttpHandler)
-        app.router.add_route('*', '/api/{device}/{obj_name}/{action}', HttpHandler)
-        app.router.add_route('*', '/api/{device}/{obj_name}/{subtype}/{action}', HttpHandler)
-        app.router.add_route('*', '/public_api/{device}/{action}', PublicHttpHandler)
-        app.router.add_route('*', '/public_api/{device}/{obj_name}/{action}', PublicHttpHandler)
-        app.router.add_route('get', '/form/{device}/{obj_name}/{form_name}', FormHandler)
-        app.router.add_route('get', '/form/{device}/{obj_name}/{subtype}/{form_name}', FormHandler)
-        # app.router.add_route('*', '/schema/{action}', SchemaHandler)
-        app.router.add_static('/i18n', f'{self.path}/i18n')
+        app.router.add_route('get', '/{device}/ws', WsHandler)
+        app.router.add_route('*', '/{device}/api/{action}', HttpHandler)
+        app.router.add_route('*', '/{device}/api/{obj_name}/{action}', HttpHandler)
+        app.router.add_route('*', '/{device}/api/{obj_name}/{subtype}/{action}', HttpHandler)
+        app.router.add_route('*', '/{device}/public_api/{action}', PublicHttpHandler)
+        app.router.add_route('*', '/{device}/public_api/{obj_name}/{action}', PublicHttpHandler)
+        app.router.add_route('*', '/{device}/public_api/{obj_name}/{subtype}/{action}', PublicHttpHandler)
+        app.router.add_route('get', '/{device}/form/{obj_name}/{form_name}', FormHandler)
+        app.router.add_route('get', '/{device}/form/{obj_name}/{subtype}/{form_name}', FormHandler)
         pass
 
     @staticmethod

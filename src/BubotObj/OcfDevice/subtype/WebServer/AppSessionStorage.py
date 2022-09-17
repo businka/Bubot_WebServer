@@ -1,5 +1,6 @@
 from uuid import uuid4
 from time import time
+import os
 
 from aiohttp_session import AbstractStorage, Session
 from bson import json_util as json
@@ -15,13 +16,13 @@ class AppSessionStorage(AbstractStorage):
                          max_age=max_age, path=path, secure=secure,
                          httponly=httponly,
                          encoder=encoder, decoder=decoder)
+        self.app = app
         try:
-            with open('sessions.json', 'r', encoding='utf-8') as file:
-                app['sessions'] = json.loads(file.read())
+            with open(self._get_session_file_path(), 'r', encoding='utf-8') as file:
+                self.app['sessions'] = json.loads(file.read())
         except Exception as err:
             pass
         self._key_factory = key_factory
-        self.app = app
 
     async def load_session(self, request):
         def empty_session():
@@ -82,5 +83,9 @@ class AppSessionStorage(AbstractStorage):
         pass
 
     def save_sessions(self):
-        with open('sessions.json', 'w', encoding='utf-8') as file:
+        with open(self._get_session_file_path(), 'w', encoding='utf-8') as file:
             file.write(json.dumps(self.app['sessions'], ensure_ascii=False, indent=2))
+
+    def _get_session_file_path(self):
+        app_device = self.app['device']
+        return os.path.join(app_device.get_config_dir(device=app_device), 'sessions.json')

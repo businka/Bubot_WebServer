@@ -27,9 +27,9 @@ class ApiHandler:
         self.device = request.app['device']
         self.log = self.device.log
 
-    async def prepare(self, request, device, obj_name, action, prefix, response_class):
+    async def prepare(self, request, device, obj_name, subtype, action, prefix, response_class):
         try:
-            api_class = self.get_api_class(device, obj_name)
+            api_class = self.get_api_class(device, obj_name, subtype)
         except Exception as err:
             raise ExtException(message='Bad API handler', detail=f'{device}/{obj_name}', parent=err)
         try:
@@ -143,10 +143,11 @@ class HttpHandler(web.View, ApiHandler):
         _action = Action(name=f'{self.__class__.__name__}.request_handler')
         device = self.request.match_info.get('device')
         obj_name = self.request.match_info.get('obj_name')
+        subtype = self.request.match_info.get('subtype')
         action = self.request.match_info.get('action')
 
         try:
-            task = await self.prepare(self.request, device, obj_name, action, prefix, Response)
+            task = await self.prepare(self.request, device, obj_name, subtype, action, prefix, Response)
             response = _action.add_stat(await task)
             _action.set_end()
             response.headers['stat'] = dumps(_action.stat, ensure_ascii=True)
