@@ -54,7 +54,7 @@ class User(Obj):
     async def find_user_by_auth(self, _type, _id, *, _action=None, **kwargs):
         # self.add_projection(kwargs)
         # kwargs['projection']['auth'] = True
-        res = _action.add_stat(await self.query(
+        res = _action.add_stat(await self.list(
             where={
                 'auth.type': _type,
                 'auth.id': _id,

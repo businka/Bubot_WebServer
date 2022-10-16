@@ -7,7 +7,7 @@ class DeviceApi:
         self.response = response
         self.db = kwargs.get('db')
         self.filter_fields = {}
-        self.query_limit = 1000
+        self.list_limit = 1000
 
 
 class WebResponse:
