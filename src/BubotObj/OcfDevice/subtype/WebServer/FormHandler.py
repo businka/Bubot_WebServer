@@ -1,8 +1,9 @@
-from aiohttp import web
 import json
-import re
 import os.path
+import re
 from sys import path as syspath
+
+from aiohttp import web
 
 
 class FormHandler(web.View):
@@ -23,13 +24,16 @@ class FormHandler(web.View):
                     return web.json_response(data)
                 except Exception as e:
                     return web.Response(status=500, text=str(e))
+
         device = self.request.match_info.get('device')
         obj_name = self.request.match_info.get('obj_name')
         form_name = self.request.match_info.get('form_name')
         subtype = self.request.match_info.get('subtype')
+
+        # берем сначала формы приложения
         if subtype:
             try:
-                file_name = self.forms[device][obj_name][f'{form_name}.form.json']
+                file_name = self.forms[device][obj_name]['subtype'][subtype][f'{form_name}.form.json']
                 return read_form(file_name)
             except KeyError:
                 pass
@@ -40,12 +44,19 @@ class FormHandler(web.View):
         except KeyError:
             pass
 
+        # если таких нет берем глобальные объектов
+        if subtype:
+            try:
+                file_name = self.forms['root'][obj_name]['subtype'][subtype][f'{form_name}.form.json']
+                return read_form(file_name)
+            except KeyError:
+                pass
+
         try:
             file_name = self.forms['root'][obj_name][f'{form_name}.form.json']
             return read_form(file_name)
         except KeyError as key:
             return web.HTTPInternalServerError(text=f"Form not found ({key})")
-
 
     @classmethod
     def find_forms(cls, **kwargs):
@@ -84,13 +95,13 @@ class FormHandler(web.View):
             if os.path.isdir(form_dir):
                 subtypes = os.listdir(form_dir)
                 for subtype in subtypes:
-                    form_dir = os.path.normpath(f'{form_dir}/{subtype}/forms')
-                    if not os.path.isdir(form_dir):
+                    subtype_form_dir = os.path.normpath(f'{form_dir}/{subtype}/forms')
+                    if not os.path.isdir(subtype_form_dir):
                         continue
-                    cls._find_in_form_dir(obj_name, subtype, form_dir, subtype if device else _device)
+                    cls._find_in_form_dir(obj_name, subtype, subtype_form_dir, subtype if device else _device)
 
     @classmethod
-    def _find_in_form_dir(cls, obj_name, subtype, form_dir,  _device=None):
+    def _find_in_form_dir(cls, obj_name, subtype, form_dir, _device=None):
         form_list = os.listdir(form_dir)
         for form_name in form_list:
             if form_name[-5:] != ".json":
@@ -105,8 +116,7 @@ class FormHandler(web.View):
                     cls.forms[_device][obj_name]['subtype'] = {}
                 if subtype not in cls.forms[_device][obj_name]['subtype']:
                     cls.forms[_device][obj_name]['subtype'][subtype] = {}
-                cls.forms[_device][obj_name]['subtype'][subtype][form_name] = os.path.normpath(f'{form_dir}/{form_name}')
+                cls.forms[_device][obj_name]['subtype'][subtype][form_name] = os.path.normpath(
+                    f'{form_dir}/{form_name}')
 
             cls.forms[_device][obj_name][form_name] = os.path.normpath(f'{form_dir}/{form_name}')
-
-

@@ -44,7 +44,7 @@ class TestUser(unittest.TestCase):
     @async_test
     async def test_create(self):
 
-        storage = Storage.connect()
+        storage = await Storage.connect()
         user = User(storage)
         cert = Cert(data=self.cert_org)
         await user.find_by_cert(cert, True)
