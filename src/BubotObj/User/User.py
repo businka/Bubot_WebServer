@@ -51,6 +51,15 @@ class User(Obj):
             return res
 
     @async_action
+    async def update_auth(self, auth_data, *, _action=None, **kwargs):
+        _action.add_stat(await self.update({
+            '_id': self.obj_id,
+            'auth.$[auth]': auth_data
+        }, array_filters=[
+            {'auth.type': auth_data['type']}
+        ]))
+
+    @async_action
     async def find_user_by_auth(self, _type, _id, *, _action=None, **kwargs):
         # self.add_projection(kwargs)
         # kwargs['projection']['auth'] = True
