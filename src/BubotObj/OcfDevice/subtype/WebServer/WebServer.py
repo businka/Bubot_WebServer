@@ -3,11 +3,9 @@ import asyncio
 import json
 import os.path
 from uuid import uuid4
-import inspect
 
 from aiohttp import web
-from aiohttp_session import get_session, setup, session_middleware
-# from bson import ObjectId
+from aiohttp_session import get_session, setup
 
 # from bubot.Catalog.Client.WebServer import API
 from Bubot.Core.DataBase.Mongo import Mongo as Storage
@@ -20,13 +18,16 @@ from Bubot.Ocf.Helper import find_drivers
 from BubotObj.OcfDevice.subtype.Device.Device import Device
 from BubotObj.OcfDevice.subtype.Device.QueueMixin import QueueMixin
 from BubotObj.OcfDevice.subtype.VirtualServer.VirtualServer import VirtualServer
-from BubotObj.OcfDevice.subtype.WebServer.AppSessionStorage import AppSessionStorage
 from BubotObj.OcfDevice.subtype.WebServer.FormHandler import FormHandler
 # import logging
 from BubotObj.OcfDevice.subtype.WebServer.HttpHandler import HttpHandler, PublicHttpHandler
+from BubotObj.OcfDevice.subtype.WebServer.SessionStorageApp import SessionStorageApp
+from BubotObj.OcfDevice.subtype.WebServer.SessionStorageMongo import SessionStorageMongo
 from BubotObj.OcfDevice.subtype.WebServer.WsHandler import WsHandler
 from .__init__ import __version__ as device_version
-import re
+
+
+# from bson import ObjectId
 
 
 # _logger = logging.getLogger(__name__)
@@ -81,7 +82,8 @@ class WebServer(VirtualServer, QueueMixin):
         self.storage = await Storage.connect(self)
         app['storage'] = self.storage
         app.middlewares.append(self.middleware_index)
-        setup(app, self.get_session_storage(app, 'AppSessionStorage'))
+        _session_storage = self.get_session_storage(app, self.get_param('/oic/con', 'session_storage', 'App'))
+        setup(app, _session_storage)
         app.middlewares.append(self.middleware_auth)
         drivers = find_drivers(log=self.log)
         self.set_param('/oic/mnt', 'drivers', drivers)
@@ -187,26 +189,15 @@ class WebServer(VirtualServer, QueueMixin):
     @staticmethod
     @web.middleware
     async def middleware_auth(request, handler):
-        try:
-            session = await get_session(request)
-        except Exception as err:
-            raise err
-        if session.get("user"):
-            return await handler(request)
-        else:
-            # auth = 0
-            # try:
-            if handler in [HttpHandler, WsHandler]:
+        if handler in [HttpHandler, WsHandler]:
+            try:
+                session = await get_session(request)
+            except Exception as err:
+                raise err
+            if session.get("user"):
+                return await handler(request)
+            else:
                 raise web.HTTPUnauthorized()
-                # url = request.app['device'].get_param('/oic/con', 'login_url', '/ui/AuthService')
-                # redirect_url = request.path
-                # raise web.HTTPFound(f"{url}?redirect={redirect_url}")
-                # auth = request.app['src_vue'][re.findall('^/src_vue/(.*)/', request.path)[0]]['param']['auth']
-            # finally:
-            #     pass
-            # if auth:
-            #     url = request.app.router['login'].url()
-
         return await handler(request)
 
     @staticmethod
@@ -245,17 +236,18 @@ class WebServer(VirtualServer, QueueMixin):
 
     @staticmethod
     def get_session_storage(app, name):
-        # def cookie_encoder(data):
-        #     return quote(json.dumps(data))
-        #
-        # def cookie_decoder(data):
-        #     try:
-        #         return json.loads(unquote(data))
-        #     except:
-        #         return None
 
         def get_app_session_storage():
-            return AppSessionStorage(
+            return SessionStorageApp(
+                app,
+                httponly=False,
+                key_factory=lambda: str(uuid4()),
+                cookie_name="session",
+                # encoder=cookie_encoder, decoder=cookie_decoder
+            )
+
+        def get_mongo_session_storage():
+            return SessionStorageMongo(
                 app,
                 httponly=False,
                 key_factory=lambda: str(uuid4()),
@@ -264,6 +256,7 @@ class WebServer(VirtualServer, QueueMixin):
             )
 
         available = {
-            'AppSessionStorage': get_app_session_storage
+            'App': get_app_session_storage,
+            'Mongo': get_mongo_session_storage
         }
         return available[name]()
