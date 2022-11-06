@@ -11,7 +11,7 @@ from Bubot.Helpers.ExtException import ExtException, KeyNotFound
 
 
 class Session(DocumentObj):
-    name = 'Session'
+    name = 'session'
 
     @property
     def db(self):
@@ -49,16 +49,17 @@ class Session(DocumentObj):
                     if user.obj_id == old_user['_id']:
                         return old_session
                     else:
-                        action.add_stat(await old_session.close('auth other user'))
+                        action.add_stat(await old_session.close(cause='auth other user'))
         except KeyNotFound:
             pass
         data = {
             "user": user.get_link(),
             "account": user.get_default_account(),
+            "begin": int(time.time())
         }
         if old_session:
             data['_id'] = old_session.data['_id']
-            data['init'] = old_session.data['date']
+            data['date'] = old_session.data['date']
         self = cls(view.storage)
         self.init_by_data(data)
         action.add_stat(await self.update())
@@ -71,7 +72,9 @@ class Session(DocumentObj):
         return self
 
     @async_action
-    async def close(self, **kwargs):
+    async def close(self, uuid=None, **kwargs):
+        if uuid:
+            await self.find_by_id(uuid)
         self.data['end'] = int(time.time())
         await self.update()
 

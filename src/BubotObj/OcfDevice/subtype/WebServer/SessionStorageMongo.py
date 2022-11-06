@@ -1,11 +1,11 @@
-from uuid import uuid4
 from time import time
-import os
+from uuid import uuid4
 
 from aiohttp_session import AbstractStorage, Session as AiohttpSession
-from BubotObj.Session.Session import Session
-from Bubot.Helpers.ExtException import KeyNotFound
 from bson import json_util as json
+
+from Bubot.Helpers.ExtException import KeyNotFound
+from BubotObj.Session.Session import Session
 
 
 class SessionStorageMongo(AbstractStorage):
@@ -40,9 +40,14 @@ class SessionStorageMongo(AbstractStorage):
         try:
             data = await self.handler.find_by_id(stored_key, _form=None)
             data = data.result
+            session_data = {
+                'created': data.get('created', data.get('begin')),
+                'session': {'user': data.get('user'), 'account': data.get('account')}
+
+            }
+            return AiohttpSession(key, data=session_data, new=False, max_age=self.max_age)
         except KeyNotFound:
             return empty_session()
-        return AiohttpSession(key, data=data, new=False, max_age=self.max_age)
 
     async def save_session(self, request, response, session):
         key = session.identity
@@ -81,3 +86,9 @@ class SessionStorageMongo(AbstractStorage):
     async def close(self):
         a = 1
         pass
+
+    def _get_session_data(self, session: AiohttpSession):
+        if session.empty:
+            return {}
+
+        return {**session._mapping, 'created': session.created}

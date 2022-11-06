@@ -1,4 +1,9 @@
 {
+  "auth": {
+    "SignIn": "Войти",
+    "SignUp": "Зарегистрироваться",
+    "SignOut": "Выйти"
+  },
   "failed": "Action failed",
   "success": "Action was successful",
   "Companies": "Компании",
