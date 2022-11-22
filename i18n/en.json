@@ -1,4 +1,9 @@
 {
+  "auth": {
+    "SignIn": "Sign in",
+    "SignUp": "Sign up",
+    "SignOut": "Sign out"
+  },
   "failed": "Action failed",
   "success": "Action was successful",
   "Companies": "Companies",

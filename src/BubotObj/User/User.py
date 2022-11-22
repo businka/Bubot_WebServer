@@ -5,7 +5,7 @@ from Bubot.Helpers.Helper import ArrayHelper
 
 
 class User(Obj):
-    name = 'User'
+    name = 'user'
     file = __file__
 
     @property

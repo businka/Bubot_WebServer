@@ -42,7 +42,9 @@ class ApiHandler:
             )
         api_action = f'{prefix}_{action}'
         self.session = await get_session(request)
-        self.session['last_visit'] = time.time()
+        # session_last_visit = self.session.get('last_visit')
+        # if session_last_visit and int(time.time()) - session_last_visit > 60 * 60:
+        #     self.session['last_visit'] = int(time.time())
         try:
             task = getattr(api_class, api_action)
         except Exception as err:

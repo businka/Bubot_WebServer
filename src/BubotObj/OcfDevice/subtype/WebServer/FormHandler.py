@@ -86,7 +86,7 @@ class FormHandler(web.View):
         for obj_name in obj_list:
             device = (obj_name == 'OcfDevice')
 
-            form_dir = os.path.normpath(f'{_path}/{obj_name}/forms')
+            form_dir = os.path.normpath(f'{_path}/{obj_name}/form')
             if not os.path.isdir(form_dir):
                 continue
             cls._find_in_form_dir(obj_name, None, form_dir, 'root')
@@ -95,7 +95,7 @@ class FormHandler(web.View):
             if os.path.isdir(form_dir):
                 subtypes = os.listdir(form_dir)
                 for subtype in subtypes:
-                    subtype_form_dir = os.path.normpath(f'{form_dir}/{subtype}/forms')
+                    subtype_form_dir = os.path.normpath(f'{form_dir}/{subtype}/form')
                     if not os.path.isdir(subtype_form_dir):
                         continue
                     cls._find_in_form_dir(obj_name, subtype, subtype_form_dir, subtype if device else _device)
