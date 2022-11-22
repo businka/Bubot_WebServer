@@ -4,9 +4,6 @@ import json
 import os.path
 from uuid import uuid4
 
-from aiohttp import web
-from aiohttp_session import get_session, setup
-
 # from bubot.Catalog.Client.WebServer import API
 from Bubot.Core.DataBase.Mongo import Mongo as Storage
 # from bubot.Core.DataBase.SqlLite import SqlLite as Storage
@@ -24,6 +21,9 @@ from BubotObj.OcfDevice.subtype.WebServer.HttpHandler import HttpHandler, Public
 from BubotObj.OcfDevice.subtype.WebServer.SessionStorageApp import SessionStorageApp
 from BubotObj.OcfDevice.subtype.WebServer.SessionStorageMongo import SessionStorageMongo
 from BubotObj.OcfDevice.subtype.WebServer.WsHandler import WsHandler
+from aiohttp import web
+from aiohttp_session import get_session, setup
+
 from .__init__ import __version__ as device_version
 
 
