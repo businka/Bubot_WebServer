@@ -4,6 +4,7 @@ import time
 # from bubot.Helpers.Сryptography.SignedData import SignedData
 from aiohttp import web
 from aiohttp_session import get_session
+from BubotObj.OcfDevice.subtype.WebServer.ApiHelper import json_options
 from bson.json_util import dumps, loads
 
 from Bubot.Core.BubotHelper import BubotHelper
@@ -12,6 +13,7 @@ from Bubot.Helpers.ActionDecorator import async_action
 from Bubot.Helpers.ExtException import ExtException, Unauthorized, AccessDenied
 from BubotObj.OcfDevice.subtype.WebServer.ApiHelper import WebResponse as Response
 # from bubot.Catalog.Account.Account import Account
+
 from BubotObj.User.User import User
 
 
@@ -97,7 +99,7 @@ class ApiHandler:
     @staticmethod
     async def loads_request_data(view):
         data = await view.request.text()
-        return loads(data) if data else {}
+        return loads(data, json_options=json_options) if data else {}
 
     @staticmethod
     async def loads_json_request_data(view):

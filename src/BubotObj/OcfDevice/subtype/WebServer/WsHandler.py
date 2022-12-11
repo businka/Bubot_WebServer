@@ -5,7 +5,7 @@ from Bubot.Helpers.ExtException import ExtException, CancelOperation
 import asyncio
 from uuid import uuid4
 import json
-from BubotObj.OcfDevice.subtype.WebServer.ApiHelper import WsResponse as Response
+from BubotObj.OcfDevice.subtype.WebServer.ApiHelper import WsResponse as Response, json_options
 import re
 from datetime import datetime
 from Bubot.Helpers.Action import Action
@@ -127,7 +127,7 @@ class WsView(ApiHandler):
     @classmethod
     def loads(cls, ws_handler, data):
         self = cls(ws_handler)
-        self.data = loads(data)
+        self.data = loads(data, json_options=json_options)
         return self
 
     @property
