@@ -28,7 +28,7 @@ setuptools.setup(
     python_requires='>=3.7',
     zip_safe=False,
     install_requires=[
-        'motor>=2.3',
+        'motor>=3',
         'aiohttp>=3.7,<4',
         'aiohttp-session>=2.9',
         'Bubot_Core>=0.1.4',

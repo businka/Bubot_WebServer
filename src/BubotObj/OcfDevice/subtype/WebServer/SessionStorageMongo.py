@@ -13,7 +13,8 @@ class SessionStorageMongo(AbstractStorage):
                  domain=None, max_age=None, path='/',
                  key_factory=lambda: str(uuid4()),
                  secure=None, httponly=True,
-                 encoder=json.dumps, decoder=json.loads):
+                 encoder=json.dumps, decoder=json.loads
+                 ):
         super().__init__(cookie_name=cookie_name, domain=domain,
                          max_age=max_age, path=path, secure=secure,
                          httponly=httponly,
