@@ -1,20 +1,20 @@
 import re
-import time
-
-# from bubot.Helpers.Сryptography.SignedData import SignedData
-from aiohttp import web
-from aiohttp_session import get_session
-from BubotObj.OcfDevice.subtype.WebServer.ApiHelper import json_options
-from bson.json_util import dumps, loads
 
 from Bubot.Core.BubotHelper import BubotHelper
 from Bubot.Helpers.Action import Action
 from Bubot.Helpers.ActionDecorator import async_action
 from Bubot.Helpers.ExtException import ExtException, Unauthorized, AccessDenied
-from BubotObj.OcfDevice.subtype.WebServer.ApiHelper import WebResponse as Response
-# from bubot.Catalog.Account.Account import Account
+# from bubot.Helpers.Сryptography.SignedData import SignedData
+from aiohttp import web
+from aiohttp_session import get_session
+from bson.json_util import dumps, loads
 
+from BubotObj.OcfDevice.subtype.WebServer.ApiHelper import WebResponse as Response
+from BubotObj.OcfDevice.subtype.WebServer.ApiHelper import json_options
 from BubotObj.User.User import User
+
+
+# from bubot.Catalog.Account.Account import Account
 
 
 class ApiHandler:
@@ -131,7 +131,8 @@ class HttpHandler(web.View, ApiHandler):
             pass
 
         async def json_decode():
-            return await self.request.json()
+            data = await self.request.text()
+            return loads(data, json_options=json_options) if data else {}
 
         data_decoder = {
             'application/x-www-form-urlencoded': www_form_decode,
