@@ -1,6 +1,7 @@
 import re
 
 from Bubot.Core.BubotHelper import BubotHelper
+from Bubot.Helpers.Helper import Helper
 from Bubot.Helpers.Action import Action
 from Bubot.Helpers.ActionDecorator import async_action
 from Bubot.Helpers.ExtException import ExtException, Unauthorized, AccessDenied
@@ -103,10 +104,11 @@ class ApiHandler:
 
     @staticmethod
     async def loads_json_request_data(view):
-        if view.request.method == 'GET':
-            return dict(view.request.query)
-        else:
-            return await view.loads_request_data(view)
+        params = dict(view.request.query)
+        if view.request.method == 'POST':
+            data = await view.loads_request_data(view)
+            return Helper.update_dict(params, data)
+        return params
 
 
 class HttpHandler(web.View, ApiHandler):

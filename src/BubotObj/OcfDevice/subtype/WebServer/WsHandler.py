@@ -1,5 +1,5 @@
 from BubotObj.OcfDevice.subtype.WebServer.HttpHandler import HttpHandler, ApiHandler
-from aiohttp import web, WSMsgType
+from aiohttp import web, WSMsgType, WSMessage
 from bson.json_util import dumps, loads
 from Bubot.Helpers.ExtException import ExtException, CancelOperation
 import asyncio
@@ -32,16 +32,16 @@ class WsHandler(HttpHandler):
                 "task": {}
             }
 
-            async for msg in self.ws:
-                if msg.type == WSMsgType.TEXT:
+            async for raw_msg in self.ws:  # type: WSMessage
+                if raw_msg.type == WSMsgType.TEXT:
                     try:
                         self.device.ws[self.ws_uid]['last'] = datetime.now()
-                        msg = WsView.loads(self, msg.data)
+                        msg = WsView.loads(self, raw_msg.data)
                     except Exception as err:
                         # self.log.warning()
                         await self.ws.send_json({
                             "type": "error",
-                            "data": ExtException(f"Bad ws msg {msg.data}").to_dict()
+                            "data": ExtException(message=f"Bad ws msg", detail=raw_msg.data).to_dict()
                         })
                         continue
                     try:
@@ -65,7 +65,7 @@ class WsHandler(HttpHandler):
                         })
                         continue
 
-                elif msg.type == WSMsgType.ERROR:
+                elif raw_msg.type == WSMsgType.ERROR:
                     print('ws connection closed with exception %s' %
                           self.ws.exception())
         finally:
@@ -89,7 +89,7 @@ class WsHandler(HttpHandler):
         except ValueError:
             raise ExtException(action='call_handler', message='Bad format message', detail=msg.name)
         try:
-            task = await msg.prepare(self.request, device, obj_name, action, 'api', Response)
+            task = await msg.prepare(self.request, device, obj_name, None, action, 'api', Response)
             self.device.ws[self.ws_uid]['task'][msg.uid] = asyncio.create_task(
                 msg.call_handler(task)
             )
@@ -154,12 +154,18 @@ class WsView(ApiHandler):
         try:
             res = _action.add_stat(await task)
             _action.set_end()
-            await self.ws.send_json({
+            await self.ws.send_str(dumps({
                 "type": "success",
                 "uid": self.uid,
                 "data": res,
                 "stat": _action.stat
-            })
+            }, ensure_ascii=False, json_options=json_options))
+            # await self.ws.send_json({
+            #     "type": "success",
+            #     "uid": self.uid,
+            #     "data": res,
+            #     "stat": _action.stat
+            # })
         except CancelOperation:
             await self.ws.send_json({
                 "type": "cancel",
