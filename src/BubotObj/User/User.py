@@ -44,7 +44,7 @@ class User(Obj):
                 session['user'] = None
         else:
             self.data = {
-                'title': data['id'],
+                'title': data.pop('title', data['id']),
                 'auth': [data]
             }
             res = _action.add_stat(await self.update())
