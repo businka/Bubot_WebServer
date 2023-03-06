@@ -29,8 +29,9 @@ setuptools.setup(
     zip_safe=False,
     install_requires=[
         'motor>=3',
+        'aioredis',
         'aiohttp>=3.7,<4',
         'aiohttp-session>=2.9',
-        'Bubot_Core>=0.1.4',
+        'Bubot_Core>=0.1.8',
     ]
 )

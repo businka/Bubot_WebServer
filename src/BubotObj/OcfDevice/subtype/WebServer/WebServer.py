@@ -3,7 +3,7 @@ import asyncio
 import json
 import os.path
 from uuid import uuid4
-
+import aioredis
 # from bubot.Catalog.Client.WebServer import API
 from Bubot.Core.DataBase.Mongo import Mongo as Storage
 # from bubot.Core.DataBase.SqlLite import SqlLite as Storage
@@ -33,7 +33,7 @@ from .__init__ import __version__ as device_version
 # _logger = logging.getLogger(__name__)
 
 
-class WebServer(VirtualServer, QueueMixin):
+class WebServer(VirtualServer):#, QueueMixin):
     version = device_version
     file = __file__
     template = False
@@ -45,11 +45,12 @@ class WebServer(VirtualServer, QueueMixin):
         # self.cache_schemas = {}
         self.schemas_dir = []
         self.net_devices = {}
-        self.request_queue = asyncio.Queue()
-        self.serial_queue_worker = None
+        # self.request_queue = asyncio.Queue()
+        # self.serial_queue_worker = None
         self.ws = {}
         self.runner = None
         self.storage = None
+        self.redis = None
         VirtualServer.__init__(self, **kwargs)
 
     async def on_pending(self):
@@ -58,6 +59,8 @@ class WebServer(VirtualServer, QueueMixin):
         await super().on_pending()
 
     async def on_cancelled(self):
+        if self.redis:
+            await self.redis.close()
         if self.storage:
             await self.storage.close()
         if self.runner is not None:
@@ -76,6 +79,9 @@ class WebServer(VirtualServer, QueueMixin):
             #     self.middleware_index
             # ]
         )
+        redis_url = self.get_param('/oic/con', 'redis_url')
+        if redis_url:
+            self.redis = await aioredis.from_url(redis_url)
         app['device'] = self
         app['sessions'] = {}
         app['fast_storage'] = FastStorage()
