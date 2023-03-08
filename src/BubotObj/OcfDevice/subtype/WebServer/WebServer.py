@@ -25,7 +25,7 @@ from aiohttp import web
 from aiohttp_session import get_session, setup
 
 from .__init__ import __version__ as device_version
-
+from BubotObj.OcfDevice.subtype.Device.RedisQueueMixin import RedisQueueMixin
 
 # from bson import ObjectId
 
@@ -33,7 +33,7 @@ from .__init__ import __version__ as device_version
 # _logger = logging.getLogger(__name__)
 
 
-class WebServer(VirtualServer):#, QueueMixin):
+class WebServer(RedisQueueMixin, VirtualServer):#, QueueMixin):
     version = device_version
     file = __file__
     template = False
@@ -50,22 +50,22 @@ class WebServer(VirtualServer):#, QueueMixin):
         self.ws = {}
         self.runner = None
         self.storage = None
-        self.redis = None
         VirtualServer.__init__(self, **kwargs)
+        RedisQueueMixin.__init__(self, **kwargs)
 
     async def on_pending(self):
         # self.serial_queue_worker = asyncio.ensure_future(self.queue_worker(self.request_queue, 'request_queue'))
+        await RedisQueueMixin.on_pending(self)
         await self.run_web_server()
-        await super().on_pending()
+        await VirtualServer.on_pending(self)
 
     async def on_cancelled(self):
-        if self.redis:
-            await self.redis.close()
+        await RedisQueueMixin.on_cancelled(self)
         if self.storage:
             await self.storage.close()
         if self.runner is not None:
             await self.runner.cleanup()
-        await super().on_cancelled()
+        await VirtualServer.on_cancelled(self)
 
     @async_action
     async def run_web_server(self, *, _action):
