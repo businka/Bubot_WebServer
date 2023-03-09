@@ -95,14 +95,15 @@ class WebServer(RedisQueueMixin, VirtualServer):#, QueueMixin):
         self.set_param('/oic/mnt', 'drivers', drivers)
         self.build_i18n(drivers)
         self.add_routes(app)
+        host = self.get_param('/oic/con', 'host', 'localhost')
         port = self.get_param('/oic/con', 'port', 8080)
         # app.on_startup.append(self.start_background_tasks)
         # app.on_cleanup.append(self.cleanup_background_tasks)
         self.runner = web.AppRunner(app)
         await self.runner.setup()
-        site = web.TCPSite(self.runner, None, port)
+        site = web.TCPSite(self.runner, host, port)
         await site.start()
-        self.log.info(f'{self.__class__.__name__} started up http://localhost:{port}')
+        self.log.info(f'{self.__class__.__name__} started up http://{host}:{port}')
         return app
         # web.run_app(app, port=port)
 
