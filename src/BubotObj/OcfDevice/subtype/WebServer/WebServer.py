@@ -1,9 +1,12 @@
 # from bubot.Client.OcfDevice.OcfDevice import OcfDevice
-import asyncio
 import json
 import os.path
 from uuid import uuid4
+
 import aioredis
+from aiohttp import web
+from aiohttp_session import get_session, setup
+
 # from bubot.Catalog.Client.WebServer import API
 from Bubot.Core.DataBase.Mongo import Mongo as Storage
 # from bubot.Core.DataBase.SqlLite import SqlLite as Storage
@@ -13,7 +16,7 @@ from Bubot.Helpers.ExtException import ExtException, ResourceNotAvailable
 from Bubot.Helpers.Helper import Helper
 from Bubot.Ocf.Helper import find_drivers
 from BubotObj.OcfDevice.subtype.Device.Device import Device
-from BubotObj.OcfDevice.subtype.Device.QueueMixin import QueueMixin
+from BubotObj.OcfDevice.subtype.Device.RedisQueueMixin import RedisQueueMixin
 from BubotObj.OcfDevice.subtype.VirtualServer.VirtualServer import VirtualServer
 from BubotObj.OcfDevice.subtype.WebServer.FormHandler import FormHandler
 # import logging
@@ -21,11 +24,8 @@ from BubotObj.OcfDevice.subtype.WebServer.HttpHandler import HttpHandler, Public
 from BubotObj.OcfDevice.subtype.WebServer.SessionStorageApp import SessionStorageApp
 from BubotObj.OcfDevice.subtype.WebServer.SessionStorageMongo import SessionStorageMongo
 from BubotObj.OcfDevice.subtype.WebServer.WsHandler import WsHandler
-from aiohttp import web
-from aiohttp_session import get_session, setup
-
 from .__init__ import __version__ as device_version
-from BubotObj.OcfDevice.subtype.Device.RedisQueueMixin import RedisQueueMixin
+
 
 # from bson import ObjectId
 
@@ -33,7 +33,7 @@ from BubotObj.OcfDevice.subtype.Device.RedisQueueMixin import RedisQueueMixin
 # _logger = logging.getLogger(__name__)
 
 
-class WebServer(RedisQueueMixin, VirtualServer):#, QueueMixin):
+class WebServer(RedisQueueMixin, VirtualServer):  # , QueueMixin):
     version = device_version
     file = __file__
     template = False
@@ -225,7 +225,8 @@ class WebServer(RedisQueueMixin, VirtualServer):#, QueueMixin):
             request.match_info['filename'] = filename
         except KeyError:
             pass
-        return await handler(request)
+        resp = await handler(request)
+        return resp
 
     # def get_schema_by_rt(self, rt):
     #     json_schema = JsonSchema4(cache=self.cache_schemas, dir=self.schemas_dir)

@@ -1,4 +1,3 @@
-from Bubot.Helpers.Helper import get_tzinfo
 from aiohttp import web
 from bson.json_util import dumps, JSONOptions
 
@@ -8,12 +7,6 @@ json_options = JSONOptions(
 )
 
 
-class DeviceApi:
-    def __init__(self, response, **kwargs):
-        self.response = response
-        self.db = kwargs.get('db')
-        self.filter_fields = {}
-        self.list_limit = 1000
 
 
 class WebResponse:

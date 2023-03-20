@@ -65,7 +65,7 @@ class ApiHandler:
         if obj_name:
             uid += f'.{obj_name}'
         if subtype:
-            uid += f'.{device}'
+            uid += f'.{subtype}'
         try:
             return self.api_class_cache[uid]
         except KeyError:
@@ -159,17 +159,16 @@ class HttpHandler(web.View, ApiHandler):
             _action.set_end()
             response.headers['stat'] = dumps(_action.stat, ensure_ascii=True)
             return response
-        except ExtException as err:
-            return Response.json_response(ExtException(
+        except Exception as err:
+            err1 = ExtException(
                 action=_action.name,
                 dump={
                     "device": device,
                     "obj_name": obj_name,
                     "action": action
                 },
-                parent=err).to_dict(), status=err.http_code)
-        except Exception as err:
-            return Response.json_response(ExtException(action=_action.name, parent=err).to_dict(), status=500)
+                parent=err)
+            return Response.json_response(err1.to_dict(), status=err1.http_code)
 
     async def notify(self, data):
         return
