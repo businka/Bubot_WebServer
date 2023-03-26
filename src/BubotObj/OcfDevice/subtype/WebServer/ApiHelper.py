@@ -2,11 +2,9 @@ from aiohttp import web
 from bson.json_util import dumps, JSONOptions
 
 json_options = JSONOptions(
-    tz_aware=False,
+    tz_aware=True,
     # tzinfo=get_tzinfo()
 )
-
-
 
 
 class WebResponse:
