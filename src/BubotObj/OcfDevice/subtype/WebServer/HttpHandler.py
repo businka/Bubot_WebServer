@@ -13,6 +13,7 @@ from bson.json_util import dumps, loads
 from BubotObj.OcfDevice.subtype.WebServer.ApiHelper import WebResponse as Response
 from BubotObj.OcfDevice.subtype.WebServer.ApiHelper import json_options
 from BubotObj.User.User import User
+from urllib.parse import unquote
 
 
 # from bubot.Catalog.Account.Account import Account
@@ -105,6 +106,8 @@ class ApiHandler:
     @staticmethod
     async def loads_json_request_data(view):
         params = dict(view.request.query)
+        for elem in params:
+            params[elem] = unquote(params[elem])
         if view.request.method == 'POST':
             data = await view.loads_request_data(view)
             return Helper.update_dict(params, data)

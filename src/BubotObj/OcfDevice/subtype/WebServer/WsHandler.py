@@ -189,10 +189,10 @@ class WsView(ApiHandler):
             except KeyError:
                 pass
 
-    @staticmethod
-    async def loads_request_data(view):
-        return view.data['data']
+    # @staticmethod
+    # async def loads_request_data(view):
+    #     return view.data.get('data')
 
     @staticmethod
     async def loads_json_request_data(view):
-        return view.data['data']
+        return view.data.get('data')

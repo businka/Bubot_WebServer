@@ -94,6 +94,19 @@ class User(Obj):
     @classmethod
     @async_action
     async def check_right(cls, **kwargs):
+        # Оболочка проверяет, являетесь ли вы владельцем объекта, к которому вы хотите получить доступ.
+        # Если вы являетесь этим владельцем, вы получаете разрешения и оболочка прекращает проверку.
+        # Если вы не являетесь владельцем объекта, оболочка проверит, являетесь ли вы участником группы,
+        # у которой есть разрешения на этот файл. Если вы являетесь участником этой группы, вы получаете
+        # доступ к объекту с разрешениями, которые для группы установлены, и оболочка прекратит проверку.
+        # Если вы не являетесь ни пользователем, ни владельцем группы, вы получаете права других
+        # пользователей (Other).
+        # нет             0000 0
+        # чтение          0001 1
+        # запись          0010 2
+        # чтение и запись 0011 3
+        # выполнение
+
         action = kwargs['_action']
         try:
             storage = kwargs['storage']
@@ -105,15 +118,15 @@ class User(Obj):
         except KeyError as key:
             raise KeyNotFound(detail=str(key))
         try:
-            user = cls(storage, account_id=account_id, form='AccessRight')
-            action.add_stat(await user.find_by_id(user_ref['_ref'].id))
+            user = cls(storage, account_id=account_id)
+            action.add_stat(await user.find_by_id(user_ref['_id'], _form='AccessRight'))
             rights = user.data.get('right')
         except Exception as err:
             raise AccessDenied(parent=err)
         if not rights:
             raise AccessDenied(detail='Empty access list')
         try:
-            _level = rights[object_name]['level']
+            _level = rights[object_name]
         except Exception:
             raise AccessDenied(detail=object_name)
         if _level < level:
