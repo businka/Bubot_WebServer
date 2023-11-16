@@ -2,9 +2,9 @@ import unittest
 import asyncio
 import logging
 from aiohttp import web
-from BubotObj.OcfDevice.subtype.WebServer.WebServer import WebServer as Device
-from Bubot.Core.TestHelper import async_test, wait_run_device, get_config_path
-from BubotObj.OcfDevice.subtype.EchoDevice.EchoDevice import EchoDevice
+from buject.OcfDevice.subtype.WebServer.WebServer import WebServer as Device
+from bubot.core.TestHelper import async_test, wait_run_device, get_config_path
+from buject.OcfDevice.subtype.EchoDevice.EchoDevice import EchoDevice
 
 
 class TestWebServer(unittest.TestCase):

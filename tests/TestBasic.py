@@ -1,7 +1,7 @@
 import unittest
-from BubotObj.OcfDevice.subtype.WebServer.WebServer import WebServer as Device
+from buject.OcfDevice.subtype.WebServer.WebServer import WebServer as Device
 import logging
-from Bubot.Core.TestHelper import async_test, wait_run_device, get_config_path
+from bubot.core.TestHelper import async_test, wait_run_device, get_config_path
 
 
 class TestBasic(unittest.TestCase):

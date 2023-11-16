@@ -1,5 +1,5 @@
 import logging
-from BubotObj.OcfDevice.subtype.WebServer.WebServer import WebServer
+from buject.OcfDevice.subtype.WebServer.WebServer import WebServer
 
 
 if __name__ == '__main__':

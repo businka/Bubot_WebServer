@@ -1,5 +1,5 @@
 from aiohttp.web import json_response, Response
-from Bubot.Core.DeviceLink import DeviceLink
+from bubot.core.ResourceLink import DeviceLink
 from Bubot.Helpers import Helper
 
 

@@ -4,8 +4,8 @@ from uuid import uuid4
 from aiohttp_session import AbstractStorage, Session as AiohttpSession
 from bson import json_util as json
 
-from Bubot.Helpers.ExtException import KeyNotFound
-from BubotObj.Session.Session import Session
+from bubot_helpers.ExtException import KeyNotFound
+from bubot.buject.Session.Session import Session
 
 
 class SessionStorageMongo(AbstractStorage):
@@ -40,7 +40,7 @@ class SessionStorageMongo(AbstractStorage):
             return empty_session()
         try:
             data = await self.handler.find_by_id(stored_key, _form=None)
-            data = data.result
+            data = data.result.data
             session_data = {
                 'created': data.get('created', data.get('begin')),
                 'session': {'user': data.get('user'), 'account': data.get('account')}
@@ -81,7 +81,7 @@ class SessionStorageMongo(AbstractStorage):
 
         data['expire'] = expire
         data['_id'] = key
-        self.handler.init_by_data(data)
+        self.handler =self.handler.init_by_data(data)
         await self.handler.update()
 
     async def close(self):

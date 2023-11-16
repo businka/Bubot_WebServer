@@ -3,27 +3,27 @@ import json
 import os.path
 from uuid import uuid4
 
-import aioredis
+from redis import asyncio as aioredis
 from aiohttp import web
 from aiohttp_session import get_session, setup
 
+from bubot.Ocf.Helper import find_drivers
+from bubot.buject.OcfDevice.subtype.Device.Device import Device
+from bubot.buject.OcfDevice.subtype.Device.RedisQueueMixin import RedisQueueMixin
+from bubot.buject.OcfDevice.subtype.VirtualServer.VirtualServer import VirtualServer
 # from bubot.Catalog.Client.WebServer import API
-from Bubot.Core.DataBase.Mongo import Mongo as Storage
-# from bubot.Core.DataBase.SqlLite import SqlLite as Storage
-from Bubot.Core.FastStorage.Simple import SimpleFastStorage as FastStorage
-from Bubot.Helpers.ActionDecorator import async_action
-from Bubot.Helpers.ExtException import ExtException, ResourceNotAvailable
-from Bubot.Helpers.Helper import Helper
-from Bubot.Ocf.Helper import find_drivers
-from BubotObj.OcfDevice.subtype.Device.Device import Device
-from BubotObj.OcfDevice.subtype.Device.RedisQueueMixin import RedisQueueMixin
-from BubotObj.OcfDevice.subtype.VirtualServer.VirtualServer import VirtualServer
-from BubotObj.OcfDevice.subtype.WebServer.FormHandler import FormHandler
+from bubot.core.DataBase.Mongo import Mongo as Storage
+# from bubot.core.DataBase.SqlLite import SqlLite as Storage
+from bubot.core.FastStorage.Simple import SimpleFastStorage as FastStorage
+from bubot_helpers.ActionDecorator import async_action
+from bubot_helpers.ExtException import ExtException, ResourceNotAvailable
+from bubot_helpers.Helper import Helper
+from .FormHandler import FormHandler
 # import logging
-from BubotObj.OcfDevice.subtype.WebServer.HttpHandler import HttpHandler, PublicHttpHandler
-from BubotObj.OcfDevice.subtype.WebServer.SessionStorageApp import SessionStorageApp
-from BubotObj.OcfDevice.subtype.WebServer.SessionStorageMongo import SessionStorageMongo
-from BubotObj.OcfDevice.subtype.WebServer.WsHandler import WsHandler
+from .HttpHandler import HttpHandler, PublicHttpHandler
+from .SessionStorageApp import SessionStorageApp
+from .SessionStorageMongo import SessionStorageMongo
+from .WsHandler import WsHandler
 from .__init__ import __version__ as device_version
 
 
@@ -91,9 +91,9 @@ class WebServer(RedisQueueMixin, VirtualServer):  # , QueueMixin):
         _session_storage = self.get_session_storage(app, self.get_param('/oic/con', 'session_storage', 'App'))
         setup(app, _session_storage)
         app.middlewares.append(self.middleware_auth)
-        drivers = find_drivers(log=self.log)
-        self.set_param('/oic/mnt', 'drivers', drivers)
-        self.build_i18n(drivers)
+        app['drivers'] = find_drivers(log=self.log)
+        self.set_param('/oic/mnt', 'drivers', app['drivers'])
+        self.build_i18n(app['drivers'])
         self.add_routes(app)
         host = self.get_param('/oic/con', 'host', None)
         port = self.get_param('/oic/con', 'port', 8080)
@@ -129,13 +129,15 @@ class WebServer(RedisQueueMixin, VirtualServer):  # , QueueMixin):
             'ru': {},
             'cn': {}
         }
-        self.log.info('begin')
+        self.log.info('build i18n begin')
+
         for elem in drivers:
-            _path = os.path.normpath(f'{drivers[elem]["path"]}/i18n')
-            if not os.path.isdir(_path):
+            driver: Device = self.get_device_class(elem)(path=self.path)
+            driver_path = os.path.normpath(os.path.join(os.path.dirname(driver.file), 'i18n'))
+            if not os.path.isdir(driver_path):
                 continue
             for locale in locales:
-                locale_path = os.path.normpath(f'{drivers[elem]["path"]}/i18n/{locale}.json')
+                locale_path = os.path.normpath(f'{driver_path}/{locale}.json')
                 if not os.path.isfile(locale_path):
                     continue
                 with open(locale_path, "r", encoding='utf-8') as file:

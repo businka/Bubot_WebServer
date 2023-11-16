@@ -1,5 +1,5 @@
 import setuptools
-from src.BubotObj.OcfDevice.subtype.WebServer import __version__
+from src.bubot_webserver import __version__
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
@@ -29,9 +29,9 @@ setuptools.setup(
     zip_safe=False,
     install_requires=[
         'motor>=3',
-        'aioredis',
+        'redis>4.2',
         'aiohttp>=3.7,<4',
         'aiohttp-session>=2.9',
-        'Bubot_Core>=0.1.12',
+        'Bubot_Core>=4.0.0',
     ]
 )

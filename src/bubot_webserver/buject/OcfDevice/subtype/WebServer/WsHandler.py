@@ -1,14 +1,14 @@
-from BubotObj.OcfDevice.subtype.WebServer.HttpHandler import HttpHandler, ApiHandler
+from .HttpHandler import HttpHandler, ApiHandler
 from aiohttp import web, WSMsgType, WSMessage
 from bson.json_util import dumps, loads
-from Bubot.Helpers.ExtException import ExtException, CancelOperation
+from bubot_helpers.ExtException import ExtException, CancelOperation
 import asyncio
 from uuid import uuid4
 import json
-from BubotObj.OcfDevice.subtype.WebServer.ApiHelper import WsResponse as Response, json_options
+from .ApiHelper import WsResponse as Response, json_options
 import re
 from datetime import datetime
-from Bubot.Helpers.Action import Action
+from bubot_helpers.Action import Action
 
 
 class WsHandler(HttpHandler):
@@ -24,7 +24,7 @@ class WsHandler(HttpHandler):
         await self.ws.prepare(self.request)
         try:
 
-            self.log.debug('websocket connection open ', self.ws_uid)
+            self.log.debug(f'websocket connection open {self.ws_uid}')
             self.device.ws[self.ws_uid] = {
                 "ws": self.ws,
                 "begin": datetime.now(),

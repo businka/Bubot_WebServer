@@ -1,19 +1,19 @@
 import re
+from urllib.parse import unquote
 
-from Bubot.Core.BubotHelper import BubotHelper
-from Bubot.Helpers.Helper import Helper
-from Bubot.Helpers.Action import Action
-from Bubot.Helpers.ActionDecorator import async_action
-from Bubot.Helpers.ExtException import ExtException, Unauthorized, AccessDenied
-# from bubot.Helpers.Сryptography.SignedData import SignedData
+# from bubot_helpers.Сryptography.SignedData import SignedData
 from aiohttp import web
 from aiohttp_session import get_session
 from bson.json_util import dumps, loads
 
-from BubotObj.OcfDevice.subtype.WebServer.ApiHelper import WebResponse as Response
-from BubotObj.OcfDevice.subtype.WebServer.ApiHelper import json_options
-from BubotObj.User.User import User
-from urllib.parse import unquote
+from bubot.core.BubotHelper import BubotHelper
+from bubot_helpers.Action import Action
+from bubot_helpers.ActionDecorator import async_action
+from bubot_helpers.ExtException import ExtException, Unauthorized, AccessDenied
+from bubot_helpers.Helper import Helper
+from bubot.buject.User.User import User
+from .ApiHelper import WebResponse as Response
+from .ApiHelper import json_options
 
 
 # from bubot.Catalog.Account.Account import Account
@@ -73,7 +73,13 @@ class ApiHandler:
             pass
         if obj_name:
             try:
-                api_class = BubotHelper.get_extension_class(obj_name, device, suffix='Api')
+                if subtype:
+                    try:
+                        api_class = BubotHelper.get_extension_class(device, obj_name, subtype, suffix='Api')
+                    except:
+                        api_class = BubotHelper.get_extension_class(device, obj_name, suffix='Api')
+                else:
+                    api_class = BubotHelper.get_extension_class(device, obj_name, suffix='Api')
             except:
                 if subtype:
                     try:
@@ -90,13 +96,18 @@ class ApiHandler:
     @async_action
     async def check_right(self, **kwargs):
         kwargs['account'] = kwargs['account'] if kwargs.get('account') else self.session['account']
-        kwargs['user'] = self.session.get('user')
-        if not kwargs['user']:
+        try:
+            user_id = self.session['user']['_id']
+        except (KeyError, TypeError):
             raise Unauthorized()
+        if not user_id:
+            raise Unauthorized()
+
         if not kwargs['account']:
             raise AccessDenied()
         kwargs['storage'] = self.storage
-        return await User.check_right(**kwargs)
+        if kwargs.get('object'):
+            return await User.check_right(**kwargs)
 
     @staticmethod
     async def loads_request_data(view):
@@ -128,7 +139,11 @@ class HttpHandler(web.View, ApiHandler):
         pass
 
     async def get(self):
-        return await self.request_handler(self.prefix_api)
+        try:
+            return await self.request_handler(self.prefix_api)
+        except Exception as err:
+            e = ExtException(parent=err)
+            return web.json_response(e.to_dict(), status=e.http_code)
 
     async def post(self):
         async def www_form_decode():
@@ -147,7 +162,11 @@ class HttpHandler(web.View, ApiHandler):
         if data_type and data_type in data_decoder:
             self.data = await data_decoder[data_type]()
 
-        return await self.request_handler(self.prefix_api)
+        try:
+            return await self.request_handler(self.prefix_api)
+        except Exception as err:
+            e = ExtException(parent=err)
+            return web.json_response(e.to_dict(), status=e.http_code)
 
     async def request_handler(self, prefix, **kwargs):
         _action = Action(name=f'{self.__class__.__name__}.request_handler')

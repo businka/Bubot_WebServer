@@ -1,9 +1,9 @@
 import unittest
 import datetime
-from BubotObj.User.User import User
-from Bubot.Helpers.Helper import async_test
+from buject.User.User import User
+from bubot_helpers.Helper import async_test
 from src.Bubot.Helpers.Сryptography.Certificate import Cert
-from Bubot.Core.DataBase.Mongo import Mongo as Storage
+from bubot.core.DataBase.Mongo import Mongo as Storage
 
 
 class TestUser(unittest.TestCase):
