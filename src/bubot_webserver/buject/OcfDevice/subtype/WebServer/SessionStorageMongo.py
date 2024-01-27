@@ -44,7 +44,7 @@ class SessionStorageMongo(AbstractStorage):
             data = data.result.data
             session_data = {
                 'created': data.get('created', data.get('begin')),
-                'session': {'user': data.get('user'), 'account': data.get('account')}
+                'session': {'user_': data.get('user_'), 'account': data.get('account')}
 
             }
             return AiohttpSession(key, data=session_data, new=False, max_age=self.max_age)

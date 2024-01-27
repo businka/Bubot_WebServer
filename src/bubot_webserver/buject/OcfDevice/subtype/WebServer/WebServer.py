@@ -24,7 +24,7 @@ from .HttpHandler import HttpHandler, PublicHttpHandler
 from .SessionStorageApp import SessionStorageApp
 from .SessionStorageMongo import SessionStorageMongo
 from .WsHandler import WsHandler
-from .__init__ import __version__ as device_version
+from bubot_webserver import __version__ as device_version
 from ..OcfCloudTcpServer.OcfCloudTcpServer import OcfCloudTcpServer
 
 

@@ -1,6 +1,6 @@
-from uuid import uuid4
-from time import time
 import os
+from time import time
+from uuid import uuid4
 
 from aiohttp_session import AbstractStorage, Session
 from bson import json_util as json
@@ -12,11 +12,11 @@ class SessionStorageApp(AbstractStorage):
                  key_factory=lambda: str(uuid4()),
                  secure=None, httponly=True,
                  samesite=None,
-                 encoder=json.dumps, decoder=json.loads):
+                 encoder=json.dumps, decoder=json.loads
+                 ):
         super().__init__(cookie_name=cookie_name, domain=domain,
                          max_age=max_age, path=path, secure=secure,
-                         httponly=httponly,
-                         samesite=samesite,
+                         httponly=httponly, samesite=samesite,
                          encoder=encoder, decoder=decoder)
         self.app = app
         try:
@@ -62,7 +62,7 @@ class SessionStorageApp(AbstractStorage):
             if session.new:
                 self.save_cookie(response, key, max_age=session.max_age)
 
-        data = self._get_session_data(session)
+        data: dict = self._get_session_data(session)
         max_age = session.max_age
         if max_age is None:
             expire = 0
