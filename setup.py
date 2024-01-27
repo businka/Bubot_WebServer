@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name='Bubot_WebServer',
+    name='bubot_webserver',
     version=__version__,
     author="Razgovorov Mikhail",
     author_email="1338833@gmail.com",
@@ -32,6 +32,6 @@ setuptools.setup(
         'redis>4.2',
         'aiohttp>=3.7,<4',
         'aiohttp-session>=2.9',
-        'Bubot_Core>=4.0.0',
+        'bubot_core>=4.0.0',
     ]
 )

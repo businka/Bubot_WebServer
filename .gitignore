@@ -4,4 +4,34 @@ node_modules
 /venv
 /dist
 /build
+/backup
 *.egg-info
+*.pyc
+*.private.json
+chromedriver_*.exe
+
+# local env files
+.env.local
+.env.*.local
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor directories and files
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+/conf/drivers/
+/conf/i18n/
+/conf/sessions.json
+/conf/drivers.json
+/conf/.wdm/
+/conf/export
+/conf/device/sessions.json
+/tests/conf/.wdm/
