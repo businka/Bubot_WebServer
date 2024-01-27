@@ -1,0 +1,26 @@
+{
+  "/oic/d": {
+    "piid": "fb979c7b-48a3-417a-b04d-309caf220997",
+    "di": "00000000-0000-0000-0000-eeeeeeeeeee1"
+  },
+  "/oic/con": {
+    "udpCoapPort": 58977,
+    "updateTime": 5
+  },
+  "/oic/sec/doxm": {
+    "deviceuuid": "00000000-0000-0000-0000-eeeeeeeeeee1"
+  },
+  "/oic/sec/pstat": {
+    "dos": {
+      "s": 0
+    }
+  },
+  "/CoAPCloudConfResURI": {
+    "cis": "coap+tcp://192.168.1.11:8777",
+    "clec": ""
+  },
+  "/oic/sec/session": {
+    "uid": "43d9ebf5-2068-4f78-9e71-87a9af5b5765",
+    "accesstoken": "65934668-147f-47dc-bfa1-b086db4fe5c0"
+  }
+}

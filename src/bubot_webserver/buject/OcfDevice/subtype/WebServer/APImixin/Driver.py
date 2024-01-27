@@ -64,6 +64,6 @@ class Driver:
         class_name = data.pop('id')
         new_device = self.init_from_config(data['links'], class_name=class_name)
         new_device.save_config()
-        di = new_device.get_device_id()
+        di = new_device.di
         await self.action_add_device(dict(di=di, dmno=class_name))
         return json_response({})

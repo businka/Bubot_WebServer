@@ -47,7 +47,7 @@ class TestWebServer(unittest.TestCase):
                 pass
             await asyncio.sleep(0.1)
 
-        test_device_id = test_device.get_device_id()
+        test_device_id = test_device.di
         await self.device.action_add_device(dict(di=test_device_id, dmno=test_device.__class__.__name__))
         test_device = self.device._devices[test_device_id]
         while test_device[0].get_param('/oic/mnt', 'status') == 'init':

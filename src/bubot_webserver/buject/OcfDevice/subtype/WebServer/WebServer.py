@@ -25,6 +25,7 @@ from .SessionStorageApp import SessionStorageApp
 from .SessionStorageMongo import SessionStorageMongo
 from .WsHandler import WsHandler
 from .__init__ import __version__ as device_version
+from ..OcfCloudTcpServer.OcfCloudTcpServer import OcfCloudTcpServer
 
 
 # from bson import ObjectId
@@ -33,7 +34,7 @@ from .__init__ import __version__ as device_version
 # _logger = logging.getLogger(__name__)
 
 
-class WebServer(RedisQueueMixin, VirtualServer):  # , QueueMixin):
+class WebServer(OcfCloudTcpServer, RedisQueueMixin, VirtualServer):  # , QueueMixin):
     version = device_version
     file = __file__
     template = False
@@ -50,6 +51,7 @@ class WebServer(RedisQueueMixin, VirtualServer):  # , QueueMixin):
         self.ws = {}
         self.runner = None
         self.storage = None
+        OcfCloudTcpServer.__init__(self, **kwargs)
         VirtualServer.__init__(self, **kwargs)
         RedisQueueMixin.__init__(self, **kwargs)
 
@@ -57,10 +59,12 @@ class WebServer(RedisQueueMixin, VirtualServer):  # , QueueMixin):
         # self.serial_queue_worker = asyncio.ensure_future(self.queue_worker(self.request_queue, 'request_queue'))
         await RedisQueueMixin.on_pending(self)
         await self.run_web_server()
+        await self.start_cloud_endpoint()
         await VirtualServer.on_pending(self)
 
     async def on_cancelled(self):
         await RedisQueueMixin.on_cancelled(self)
+        await self.stop_cloud_endpoint()
         if self.storage:
             await self.storage.close()
         if self.runner is not None:
@@ -91,7 +95,7 @@ class WebServer(RedisQueueMixin, VirtualServer):  # , QueueMixin):
         _session_storage = self.get_session_storage(app, self.get_param('/oic/con', 'session_storage', 'App'))
         setup(app, _session_storage)
         app.middlewares.append(self.middleware_auth)
-        app['drivers'] = find_drivers(log=self.log)
+        app['drivers'] = _action.add_stat(find_drivers(log=self.log))
         self.set_param('/oic/mnt', 'drivers', app['drivers'])
         self.build_i18n(app['drivers'])
         self.add_routes(app)
@@ -203,7 +207,7 @@ class WebServer(RedisQueueMixin, VirtualServer):  # , QueueMixin):
                 session = await get_session(request)
             except Exception as err:
                 raise err
-            if session.get("user"):
+            if session.get("user_"):
                 return await handler(request)
             else:
                 raise web.HTTPUnauthorized()
@@ -253,6 +257,8 @@ class WebServer(RedisQueueMixin, VirtualServer):  # , QueueMixin):
                 httponly=False,
                 key_factory=lambda: str(uuid4()),
                 cookie_name="session",
+                secure=True,
+                samesite='none'
                 # encoder=cookie_encoder, decoder=cookie_decoder
             )
 
@@ -262,6 +268,8 @@ class WebServer(RedisQueueMixin, VirtualServer):  # , QueueMixin):
                 httponly=False,
                 key_factory=lambda: str(uuid4()),
                 cookie_name="session",
+                secure=True,
+                samesite='none'
                 # encoder=cookie_encoder, decoder=cookie_decoder
             )
 
