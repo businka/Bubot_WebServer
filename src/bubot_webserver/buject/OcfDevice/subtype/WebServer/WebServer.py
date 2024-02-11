@@ -56,20 +56,26 @@ class WebServer(OcfCloudTcpServer, RedisQueueMixin, VirtualServer):  # , QueueMi
         RedisQueueMixin.__init__(self, **kwargs)
 
     async def on_pending(self):
-        # self.serial_queue_worker = asyncio.ensure_future(self.queue_worker(self.request_queue, 'request_queue'))
-        await RedisQueueMixin.on_pending(self)
-        await self.run_web_server()
-        await self.start_cloud_endpoint()
-        await VirtualServer.on_pending(self)
+        try:
+            # self.serial_queue_worker = asyncio.ensure_future(self.queue_worker(self.request_queue, 'request_queue'))
+            await RedisQueueMixin.on_pending(self)
+            await self.run_web_server()
+            await self.start_cloud_endpoint()
+            await VirtualServer.on_pending(self)
+        except Exception as err:
+            raise ExtException(parent=err)
 
     async def on_cancelled(self):
-        await RedisQueueMixin.on_cancelled(self)
-        await self.stop_cloud_endpoint()
-        if self.storage:
-            await self.storage.close()
-        if self.runner is not None:
-            await self.runner.cleanup()
-        await VirtualServer.on_cancelled(self)
+        try:
+            await RedisQueueMixin.on_cancelled(self)
+            await self.stop_cloud_endpoint()
+            if self.storage:
+                await self.storage.close()
+            if self.runner is not None:
+                await self.runner.cleanup()
+            await VirtualServer.on_cancelled(self)
+        except Exception as err:
+            raise ExtException(parent=err)
 
     @async_action
     async def run_web_server(self, *, _action):

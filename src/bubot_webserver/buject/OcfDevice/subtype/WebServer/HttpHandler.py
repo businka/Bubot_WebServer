@@ -97,7 +97,8 @@ class ApiHandler:
     async def check_right(self, **kwargs):
         kwargs['account'] = kwargs['account'] if kwargs.get('account') else self.session['account']
         try:
-            user_id = self.session['user']['_id']
+            kwargs['user_'] = self.session['user_']
+            user_id = kwargs['user_']['_id']
         except (KeyError, TypeError):
             raise Unauthorized()
         if not user_id:

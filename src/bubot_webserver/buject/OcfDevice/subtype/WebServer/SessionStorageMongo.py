@@ -28,26 +28,28 @@ class SessionStorageMongo(AbstractStorage):
         def empty_session():
             return AiohttpSession(None, data=None, new=True, max_age=self.max_age)
 
-        cookie = self.load_cookie(request)
-        if cookie is None:
-            return empty_session()
+        session = self.load_cookie(request)
+        if session is None:
+            session = request.headers.get(self._cookie_name)
+            if session is None:
+                return empty_session()
         # key = self._decoder(cookie)
-        key = cookie
-        if key is None:
-            return empty_session()
+        # key = cookie
+        # if key is None:
+        #     return empty_session()
+        # try:
+        #     stored_key = key
+        # except KeyError:
+        #     return empty_session()
         try:
-            stored_key = key
-        except KeyError:
-            return empty_session()
-        try:
-            data = await self.handler.find_by_id(stored_key, _form=None)
+            data = await self.handler.find_by_id(session, _form=None)
             data = data.result.data
             session_data = {
                 'created': data.get('created', data.get('begin')),
                 'session': {'user_': data.get('user_'), 'account': data.get('account')}
 
             }
-            return AiohttpSession(key, data=session_data, new=False, max_age=self.max_age)
+            return AiohttpSession(session, data=session_data, new=False, max_age=self.max_age)
         except KeyNotFound:
             return empty_session()
 
