@@ -67,7 +67,7 @@ class SchemaHandler(web.View):
                     cls.schemas[schema_name] = os.path.normpath(f'{schemas_dir}/{schema_name}')
 
         for path1 in syspath:
-            bubot_dir = f'{path1}/BubotObj/ObjSchema'
+            bubot_dir = f'{path1}/buject/ObjSchema'
             if not os.path.isdir(bubot_dir):
                 continue
             find_in_form_dir(bubot_dir, 'root')

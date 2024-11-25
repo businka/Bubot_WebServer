@@ -112,7 +112,7 @@ class WsView(ApiHandler):
         ApiHandler.__init__(self, view.request)
         self.ws = view.ws
         self.ws_uid = view.ws_uid
-        self.data = None
+        # self.data = None
         self.task = None
         # self.uid = view.uid
         # self.data = None

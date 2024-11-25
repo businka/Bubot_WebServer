@@ -29,6 +29,7 @@ class ApiHandler:
         self.storage = request.app['storage']
         self.app = request.app
         self.device = request.app['device']
+        self.data = None
         self.log = self.device.log
 
     async def prepare(self, request, device, obj_name, subtype, action, prefix, response_class):
