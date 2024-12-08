@@ -4,10 +4,9 @@ from bson.json_util import dumps, loads
 from bubot_helpers.ExtException import ExtException, CancelOperation
 import asyncio
 from uuid import uuid4
-import json
 from .ApiHelper import WsResponse as Response, json_options
 import re
-from datetime import datetime
+import datetime
 from bubot_helpers.Action import Action
 
 
@@ -27,15 +26,15 @@ class WsHandler(HttpHandler):
             self.log.debug(f'websocket connection open {self.ws_uid}')
             self.device.ws[self.ws_uid] = {
                 "ws": self.ws,
-                "begin": datetime.now(),
-                "last": datetime.now(),
+                "begin": datetime.datetime.now(),
+                "last": datetime.datetime.now(),
                 "task": {}
             }
 
             async for raw_msg in self.ws:  # type: WSMessage
                 if raw_msg.type == WSMsgType.TEXT:
                     try:
-                        self.device.ws[self.ws_uid]['last'] = datetime.now()
+                        self.device.ws[self.ws_uid]['last'] = datetime.datetime.now()
                         msg = WsView.loads(self, raw_msg.data)
                     except Exception as err:
                         # self.log.warning()

@@ -33,6 +33,12 @@ from ..OcfCloudTcpServer.OcfCloudTcpServer import OcfCloudTcpServer
 
 # _logger = logging.getLogger(__name__)
 
+# device = web.AppKey("device", WebServer)
+# sessions = web.AppKey('sessions', dict)
+# fast_storage = web.AppKey('fast_storage', FastStorage)
+# storage = web.AppKey('storage', Storage)
+# drivers = web.AppKey('drivers', list)
+
 
 class WebServer(OcfCloudTcpServer, RedisQueueMixin, VirtualServer):  # , QueueMixin):
     version = device_version
@@ -284,3 +290,4 @@ class WebServer(OcfCloudTcpServer, RedisQueueMixin, VirtualServer):  # , QueueMi
             'Mongo': get_mongo_session_storage
         }
         return available[name]()
+
