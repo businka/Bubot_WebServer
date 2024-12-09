@@ -14,7 +14,7 @@ class OicRd(OcfResource):
 
         data = {'res': payload['links']}
 
-        res = await self.device.storage.update(self.device.db, self.device.device_table, data, where={
+        res = await self.device.storage.update(self.device.db, self.device.device_table, data, filter={
             'di': di,
         })
 

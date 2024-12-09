@@ -50,7 +50,7 @@ class OcfCloudTcpServer(Device):
             await self.cloud.close()
 
     async def clear_session(self):
-        await self.storage.update(self.db, self.device_table, {'login': False}, where={'server': self.di}, create=False)
+        await self.storage.update(self.db, self.device_table, {'login': False}, filter={'server': self.di}, create=False)
 
     async def device_login(self, payload, address):
         di = payload['di']
@@ -60,7 +60,7 @@ class OcfCloudTcpServer(Device):
         }
         if login:
             data['server'] = self.di
-        res = await self.storage.update(self.db, self.device_table, data, where={'di': di}, create=False)
+        res = await self.storage.update(self.db, self.device_table, data, filter={'di': di}, create=False)
         if not res.result.matched_count:
             raise KeyNotFound(message='Device not register', detail=f'di={di}')
         if login:

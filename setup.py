@@ -32,6 +32,6 @@ setuptools.setup(
         'redis>4.2',
         'aiohttp==3.9.3',
         'aiohttp-session>=2.9',
-        'bubot_core>=4.0.0',
+        'bubot_core>=4.1.0,<4.2',
     ]
 )

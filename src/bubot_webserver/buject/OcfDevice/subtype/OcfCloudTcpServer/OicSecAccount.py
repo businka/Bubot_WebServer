@@ -36,7 +36,7 @@ class OicSecAccount(OcfResource):
 
             data['_id'] = res['_id'] if res else str(uuid4())
 
-            res = await self.device.storage.update(self.device.db, self.device.device_table, data, where={
+            res = await self.device.storage.update(self.device.db, self.device.device_table, data, filter={
                 'di': di, '_id': data['_id']
             })
 
