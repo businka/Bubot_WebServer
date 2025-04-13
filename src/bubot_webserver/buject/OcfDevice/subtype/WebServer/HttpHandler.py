@@ -1,7 +1,6 @@
 import re
 from urllib.parse import unquote
 
-# from bubot_helpers.Сryptography.SignedData import SignedData
 from aiohttp import web
 from aiohttp_session import get_session
 from bson.json_util import dumps, loads
@@ -9,7 +8,7 @@ from bson.json_util import dumps, loads
 from bubot.core.BubotHelper import BubotHelper
 from bubot_helpers.Action import Action
 from bubot_helpers.ActionDecorator import async_action
-from bubot_helpers.ExtException import ExtException, Unauthorized, AccessDenied
+from bubot_helpers.ExtException import ExtException, Unauthorized, AccessDenied, HandlerNotFoundError
 from bubot_helpers.Helper import Helper
 from bubot.buject.User.User import User
 from .ApiHelper import WebResponse as Response
@@ -63,34 +62,37 @@ class ApiHandler:
     #     return loads(data)
 
     def get_api_class(self, device, obj_name, subtype=None):
-        uid = device
-        if obj_name:
-            uid += f'.{obj_name}'
+        if not obj_name and not subtype:
+            obj_name = 'OcfDevice'
+            subtype = device
+
+        uid = f'{device}.{obj_name}'
+
         if subtype:
             uid += f'.{subtype}'
         try:
             return self.api_class_cache[uid]
         except KeyError:
             pass
-        if obj_name:
-            try:
-                if subtype:
-                    try:
-                        api_class = BubotHelper.get_extension_class(device, obj_name, subtype, suffix='Api')
-                    except:
-                        api_class = BubotHelper.get_extension_class(device, obj_name, suffix='Api')
-                else:
-                    api_class = BubotHelper.get_extension_class(device, obj_name, suffix='Api')
-            except:
-                if subtype:
-                    try:
-                        api_class = BubotHelper.get_subtype_class(obj_name, subtype, suffix='Api')
-                    except:
-                        api_class = BubotHelper.get_obj_class(obj_name, suffix='Api')
-                else:
-                    api_class = BubotHelper.get_obj_class(obj_name, suffix='Api')
-        else:
-            api_class = BubotHelper.get_subtype_class('OcfDevice', device, suffix='Api')
+        package_name = BubotHelper.get_package_name('OcfDevice', device)
+        index_key = f'{obj_name}/{subtype if subtype else ''}'
+        BubotHelper.init_buject_index()
+        package = None
+        try:
+            index = BubotHelper.buject_index[index_key]
+            for elem in index:
+                if elem[0] == package_name:
+                    package = elem[0]
+                    break
+            if not package:
+                package = index[0][0]
+        except KeyError:
+            raise ExtException(message='Class not defined', detail=index_key)
+
+        try:
+            api_class = BubotHelper.get_buject_class(package, obj_name, subtype, suffix='Api')
+        except ExtException as err:
+            raise HandlerNotFoundError(detail=f'object {obj_name} extension {subtype}', parent=err)
         self.api_class_cache[uid] = api_class
         return api_class
 
