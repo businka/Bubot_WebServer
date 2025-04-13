@@ -75,7 +75,7 @@ class ApiHandler:
         except KeyError:
             pass
         package_name = BubotHelper.get_package_name('OcfDevice', device)
-        index_key = f'{obj_name}/{subtype if subtype else ''}'
+        index_key = f"{obj_name}/{subtype if subtype else ''}"
         BubotHelper.init_buject_index()
         package = None
         try:
